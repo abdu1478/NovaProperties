@@ -81,7 +81,7 @@ if (isProduction && cluster.isPrimary) {
   app.set("etag", "strong");
 
   // MongoDB connection
-  mongoose.connect(mongodbURI1, {
+  mongoose.connect(mongodbURI, {
     maxPoolSize: 10,
     socketTimeoutMS: 45000,
     connectTimeoutMS: 30000,
