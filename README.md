@@ -43,10 +43,10 @@ A modern full-stack web application for real estate listings and property manage
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/property-platform.git
-cd property-platform
+git clone https://github.com/abdu1478/NovaProperties.git
+cd NovaProperties
 2. Setup Environment Variables
-Create .env files in both /client and /server folders.
+Create .env files in both /client and /backend folders.
 
 /server/.env example:
 env
