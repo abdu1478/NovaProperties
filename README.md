@@ -79,7 +79,7 @@ Start Frontend:
 bash
 Copy
 Edit
-cd REALSTATE
+cd NovaProperties
 npm run dev
 📁 Folder Structure
 bash
