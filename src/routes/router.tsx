@@ -17,12 +17,12 @@ const lazyLoad = (path: string) =>
 
 const Favourite = lazyLoad("Favourite");
 const AboutPage = lazyLoad("AboutPage");
-const AgentsPage = lazyLoad("Agent/AgentsPage");
+const AgentsPage = lazyLoad("AgentsPage");
 const PropertiesPage = lazyLoad("PropertiesPage");
 const HomePage = lazyLoad("HomePage");
 const ListingsPage = lazyLoad("Listings");
 const ContactPage = lazyLoad("ContactPage");
-const AgentDetailPage = lazyLoad("Agent/AgentDetailPage");
+const AgentDetailPage = lazyLoad("AgentDetailPage");
 const PropertyDetailPage = lazyLoad("Properties/PropertyDetailPage");
 const NotFoundPage = lazyLoad("NotFound");
 const Login = lazyLoad("Login");
