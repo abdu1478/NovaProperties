@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { Property, Agent, Testimonial, User } from "../models/model";
 import { Document } from "mongoose";
 import { IUser } from "../models/model";
+import { cacheMiddleware } from "../utils/cache";
 
 declare global {
   namespace Express {
@@ -186,7 +187,10 @@ router.get(
         res.status(401).json({ message: "User not authenticated" });
         return;
       }
-      res.status(200).json(req.user);
+      res
+        .status(200)
+        .set("Cache-Control", "public, max-age=300")
+        .json(req.user);
     } catch (error) {
       next(error);
     }
@@ -198,7 +202,7 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await Property.find().limit(4);
-      res.json(data);
+      res.set("Cache-Control", "public, max-age=300").json(data);
     } catch (error) {
       next(error);
     }
@@ -210,7 +214,7 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await Agent.find().limit(5);
-      res.json(data);
+      res.set("Cache-Control", "public, max-age=300").json(data);
     } catch (error) {
       next(error);
     }
@@ -222,7 +226,7 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await Testimonial.find().limit(3);
-      res.json(data);
+      res.set("Cache-Control", "public, max-age=300").json(data);
     } catch (error) {
       next(error);
     }
@@ -238,24 +242,10 @@ router.get(
         res.status(404).json({ message: "Property not found" });
         return;
       }
-      res.status(200).json(property);
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-router.get(
-  "/agents/:id",
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params;
-      const agent = await Agent.findById(id);
-      if (!agent) {
-        res.status(404).json({ message: "Agent not found" });
-        return;
-      }
-      res.status(200).json(agent);
+      res
+        .status(200)
+        .set("Cache-Control", "public, max-age=300")
+        .json(property);
     } catch (error) {
       next(error);
     }
@@ -263,6 +253,31 @@ router.get(
 );
 
 router.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  res.status(500).json({ message: "Internal server error" });
+});
+
+router.get("/agents/:id", async (req, res, next): Promise<void> => {
+  try {
+    const agent = await Agent.findById(req.params.id)
+      .select("-__v -createdAt -updatedAt")
+      .maxTimeMS(2000)
+      .lean();
+
+    if (!agent) {
+      res.status(404).json({ message: "Not found" });
+      return;
+    }
+
+    res.set("Cache-Control", "public, max-age=600");
+    res.json(agent);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Error handling
+router.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.stack);
   res.status(500).json({ message: "Internal server error" });
 });
 

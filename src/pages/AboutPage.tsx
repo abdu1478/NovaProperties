@@ -16,7 +16,6 @@ export default function About() {
       try {
         const data = await fetchTestimonials();
         setTestimonials(data);
-        console.log("Testimonials data:", data);
       } catch (error) {
         console.error("Error fetching testimonials:", error);
       }

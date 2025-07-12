@@ -19,7 +19,7 @@ const PropertiesPage = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -48,6 +48,7 @@ const PropertiesPage = () => {
   );
   const [sortOption, setSortOption] = useState(searchParams.get("sort") || "");
 
+  console.log(isSyncing);
   useEffect(() => {
     const fetchProperties = async () => {
       try {

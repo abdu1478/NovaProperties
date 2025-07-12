@@ -3,6 +3,7 @@ import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "@/layouts/MainLayout";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { withAuth } from "@/contexts/AuthContext";
+import { ROUTES } from "@/constants/routes";
 
 const lazyLoad = (path: string) =>
   lazy(() =>
@@ -15,14 +16,14 @@ const lazyLoad = (path: string) =>
   );
 
 const Favourite = lazyLoad("Favourite");
+const AboutPage = lazyLoad("AboutPage");
+const AgentsPage = lazyLoad("Agent/AgentsPage");
 const PropertiesPage = lazyLoad("PropertiesPage");
 const HomePage = lazyLoad("HomePage");
 const ListingsPage = lazyLoad("Listings");
-const AboutPage = lazyLoad("AboutPage");
 const ContactPage = lazyLoad("ContactPage");
-const AgentsPage = lazyLoad("AgentsPage");
-const AgentDetailPage = lazyLoad("AgentDetailPage");
-const PropertyDetailPage = lazyLoad("PropertyDetailPage");
+const AgentDetailPage = lazyLoad("Agent/AgentDetailPage");
+const PropertyDetailPage = lazyLoad("Properties/PropertyDetailPage");
 const NotFoundPage = lazyLoad("NotFound");
 const Login = lazyLoad("Login");
 const Signup = lazyLoad("Signup");
@@ -55,7 +56,7 @@ const router = createBrowserRouter([
 
       // Property listing routes
       {
-        path: "properties",
+        path: ROUTES.PROPERTIES,
         element: withSuspense(<PropertiesPage />),
         handle: {
           title: "Properties | Nova Properties",
@@ -76,7 +77,7 @@ const router = createBrowserRouter([
       },
 
       {
-        path: "properties/:id",
+        path: ROUTES.PROPERTY_DETAIL,
         element: withSuspense(<PropertyDetailPage />),
         handle: {
           title: "Property Details | Nova Properties",
@@ -87,7 +88,7 @@ const router = createBrowserRouter([
 
       // Agent routes
       {
-        path: "agents",
+        path: ROUTES.AGENTS,
         children: [
           {
             index: true,
@@ -98,7 +99,7 @@ const router = createBrowserRouter([
             },
           },
           {
-            path: ":id",
+            path: ROUTES.AGENT_DETAIL,
             element: withSuspense(<AgentDetailPage />),
             handle: {
               title: "Agent Profile | Nova Properties",
@@ -111,7 +112,7 @@ const router = createBrowserRouter([
 
       // Static pages
       {
-        path: "about-us",
+        path: ROUTES.ABOUT,
         element: withSuspense(<AboutPage />),
         handle: {
           title: "About Us | Nova Properties",
@@ -119,7 +120,7 @@ const router = createBrowserRouter([
         },
       },
       {
-        path: "contact",
+        path: ROUTES.CONTACT,
         element: withSuspense(<ContactPage />),
         handle: {
           title: "Contact Us | Nova Properties",
@@ -127,7 +128,7 @@ const router = createBrowserRouter([
         },
       },
       {
-        path: "favorite",
+        path: ROUTES.FAVORITES,
         element: withSuspense(React.createElement(withAuth(Favourite))),
         handle: {
           title: "Favorites | Nova Properties",
@@ -137,7 +138,7 @@ const router = createBrowserRouter([
   },
   // Auth route
   {
-    path: "/signin",
+    path: ROUTES.SIGNIN,
     element: withSuspense(<Login />),
     handle: {
       title: "Sign In | Nova Properties",
@@ -145,7 +146,7 @@ const router = createBrowserRouter([
     },
   },
   {
-    path: "/signup",
+    path: ROUTES.SIGNUP,
     element: withSuspense(<Signup />),
     handle: {
       title: "Create Account | Nova Properties",

@@ -9,7 +9,6 @@ import { Link } from "react-router-dom";
 
 const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
     <section

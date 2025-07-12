@@ -3,6 +3,7 @@ import { MapPin, Bed, Bath, Ruler, Heart, CircleParking } from "lucide-react";
 import type { Property } from "@/utils/api";
 import { Link, useLocation } from "react-router-dom";
 import { formatPrice } from "@/utils/formatPrice";
+import { ROUTES } from "@/constants/routes";
 interface PropertyCardProps {
   property: Property;
 }
@@ -144,7 +145,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
           </ul>
         )}
         <Link
-          to={`/properties/${property._id}`}
+          to={ROUTES.PROPERTY_DETAIL.replace(":id", property._id)}
           state={{ from: location.pathname }}
           className="w-full inline-block text-center bg-primary hover:bg-primary/90 text-primary-foreground rounded-md py-2 px-4 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           aria-label={`View details for ${property.type}`}

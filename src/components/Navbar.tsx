@@ -13,7 +13,7 @@ import {
 import { Button } from "./ui/button";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useDebounce } from "use-debounce";
+// import { useDebounce } from "use-debounce";
 import { motion, AnimatePresence } from "framer-motion";
 import RefForwardedLink from "./RefForwardedLink";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,7 +26,7 @@ function Navbar() {
   const [showMobileSearch, setShowMobileSearch] = useState<boolean>(false);
   const [scrolled, setScrolled] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [debouncedQuery] = useDebounce(searchQuery, 300);
+  // const [debouncedQuery] = useDebounce(searchQuery, 300);
 
   const imgRef = useRef<HTMLImageElement>(null);
   const desktopSearchInputRef = useRef<HTMLInputElement>(null);

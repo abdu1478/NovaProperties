@@ -67,7 +67,17 @@ const Footer = () => {
                 (item) => (
                   <li key={item}>
                     <Link
-                      to="/#"
+                      to={`${
+                        item === "Home"
+                          ? "/"
+                          : item === "About Us"
+                          ? "/about-us"
+                          : item === "Properties"
+                          ? "/properties/listings"
+                          : item === "Agents"
+                          ? "/agents"
+                          : "/contact"
+                      }`}
                       className="text-muted-foreground hover:text-primary-foreground transition-colors"
                     >
                       {item}
@@ -85,7 +95,13 @@ const Footer = () => {
                 (item) => (
                   <li key={item}>
                     <Link
-                      to="/#"
+                      to={`properties/listings?type=${
+                        item === "Buying"
+                          ? "buy"
+                          : item === "Renting"
+                          ? "rent"
+                          : item.toLowerCase()
+                      }`}
                       className="text-muted-foreground hover:text-primary-foreground transition-colors"
                     >
                       {item}

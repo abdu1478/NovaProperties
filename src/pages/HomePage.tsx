@@ -1,4 +1,3 @@
-// H.tsx
 import { useEffect, useState } from "react";
 import { Search, UserCheck } from "lucide-react";
 import {
@@ -15,6 +14,7 @@ import ContactSection from "@/components/Shared/ContactUs";
 import TestimonialsSection from "@/components/Shared/TestimonialCard";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
+import { ROUTES } from "@/constants/routes";
 
 function HomePage() {
   const [property, setProperty] = useState<Property[]>([]);
@@ -36,10 +36,11 @@ function HomePage() {
     const getAgents = async () => {
       try {
         const data = await fetchAgents();
-        setAgents(data);
+        setAgents(Array.isArray(data) ? data : []);
         console.log("Agents data:", data);
       } catch (error) {
         console.error("Error fetching agents:", error);
+        setAgents([]); // Set to empty array on error
       }
     };
     getAgents();
@@ -138,7 +139,7 @@ function HomePage() {
               whileTap={{ scale: 0.95 }}
             >
               <Link
-                to="/properties/listings"
+                to={ROUTES.PROPERTIES}
                 className="flex items-center cursor-pointer"
               >
                 <Search className="w-5 h-5 mr-2" />
@@ -154,7 +155,7 @@ function HomePage() {
               }}
               whileTap={{ scale: 0.95 }}
             >
-              <Link to="/agents" className="flex items-center">
+              <Link to={ROUTES.AGENTS} className="flex items-center">
                 <UserCheck className="w-5 h-5 mr-2" />
                 Contact an Agent
               </Link>
@@ -186,7 +187,7 @@ function HomePage() {
           </div>
           <div className="text-center mt-12">
             <Link
-              to="/properties/listings"
+              to={`${ROUTES.PROPERTIES}`}
               className="btn btn--view bg-primary text-primary-foreground rounded-lg px-8 py-3 font-bold"
             >
               View All Listings

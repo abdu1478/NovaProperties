@@ -14,10 +14,10 @@ interface User {
   role: string;
 }
 
-interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-}
+// interface AuthTokens {
+//   accessToken: string;
+//   refreshToken: string;
+// }
 
 interface AuthContextType {
   user: User | null;
@@ -76,13 +76,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const accessToken = secureStorage.getItem("accessToken");
 
         if (storedUser && accessToken) {
-          // Validate token on initialization
           const isValid = await validateToken(accessToken);
 
           if (isValid) {
             setUser(JSON.parse(storedUser));
           } else {
-            // Attempt to refresh token if invalid
             await refreshToken();
           }
         }
@@ -96,13 +94,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     initializeAuth();
   }, []);
 
-  // Token validation (simulated)
   const validateToken = async (token: string): Promise<boolean> => {
-    // In a real app, this would make an API call to validate the token
     return new Promise((resolve) => {
-      // Simulate API call
       setTimeout(() => {
-        // Simple expiration check (not secure in real-world)
         try {
           const payload = JSON.parse(atob(token.split(".")[1]));
           resolve(payload.exp * 1000 > Date.now());
@@ -191,7 +185,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     setUser(null);
 
-    fetch(`${API_BASE_URL}/auth/logout`, { method: "POST" }).catch(console.error);
+    fetch(`${API_BASE_URL}/auth/logout`, { method: "POST" }).catch(
+      console.error
+    );
   }, []);
 
   const getAccessToken = useCallback((): string | null => {

@@ -1,17 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Phone,
-  Mail,
-  Search,
-  MapPin,
-  Star,
-  Linkedin,
-  Twitter,
-  Facebook,
-} from "lucide-react";
+import { Phone, Search } from "lucide-react";
 import AgentCard from "@/components/Shared/AgentCard"; // Import the new card component
 import { fetchAgents, type Agent } from "@/utils/api";
 
