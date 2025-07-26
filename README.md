@@ -130,6 +130,7 @@ Feel free to reach out:
 ## 📌 Project Status
 
 This project is currently **in active development**.
+
 Stay tuned for more features and improvements!
 
 ---
