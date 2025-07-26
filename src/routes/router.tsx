@@ -5,30 +5,20 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { withAuth } from "@/contexts/AuthContext";
 import { ROUTES } from "@/constants/routes";
 
-const lazyLoad = (path: string) =>
-  lazy(() =>
-    import(`@/pages/${path}.tsx`).catch(() => {
-      const fullPath = `@/pages/${path}`;
-      console.error(`Failed to load component at ${fullPath}`);
-      console.error(`Failed to load page: ${path}`);
-      return import("@/pages/NotFound");
-    })
-  );
+// pages
+const Favourite = lazy(() => import("@/pages/Favourite"));
+const AboutPage = lazy(() => import("@/pages/AboutPage"));
+const AgentsPage = lazy(() => import("@/pages/AgentsPage"));
+const PropertiesPage = lazy(() => import("@/pages/PropertiesPage"));
+const HomePage = lazy(() => import("@/pages/HomePage"));
+const ListingsPage = lazy(() => import("@/pages/Listings"));
+const ContactPage = lazy(() => import("@/pages/ContactPage"));
+const AgentDetailPage = lazy(() => import("@/pages/AgentDetailPage"));
+const PropertyDetailPage = lazy(() => import("@/pages/PropertyDetailPage"));
+const NotFoundPage = lazy(() => import("@/pages/NotFound"));
+const Login = lazy(() => import("@/pages/Login"));
+const Signup = lazy(() => import("@/pages/Signup"));
 
-const Favourite = lazyLoad("Favourite");
-const AboutPage = lazyLoad("AboutPage");
-const AgentsPage = lazyLoad("AgentsPage");
-const PropertiesPage = lazyLoad("PropertiesPage");
-const HomePage = lazyLoad("HomePage");
-const ListingsPage = lazyLoad("Listings");
-const ContactPage = lazyLoad("ContactPage");
-const AgentDetailPage = lazyLoad("AgentDetailPage");
-const PropertyDetailPage = lazyLoad("PropertyDetailPage");
-const NotFoundPage = lazyLoad("NotFound");
-const Login = lazyLoad("Login");
-const Signup = lazyLoad("Signup");
-
-// Reusable suspense wrapper
 const withSuspense = (element: React.ReactNode) => (
   <Suspense fallback={<LoadingSpinner fullScreen />}>{element}</Suspense>
 );
@@ -37,7 +27,6 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <MainLayout />,
-    errorElement: withSuspense(<NotFoundPage />),
     children: [
       {
         index: true,
@@ -48,13 +37,6 @@ const router = createBrowserRouter([
             "Discover premium real estate listings with Nova Properties.",
         },
       },
-      // Sign in route
-      {
-        index: true,
-        element: withSuspense(<Login />),
-      },
-
-      // Property listing routes
       {
         path: ROUTES.PROPERTIES,
         element: withSuspense(<PropertiesPage />),
@@ -75,7 +57,6 @@ const router = createBrowserRouter([
           },
         ],
       },
-
       {
         path: ROUTES.PROPERTY_DETAIL,
         element: withSuspense(<PropertyDetailPage />),
@@ -85,8 +66,6 @@ const router = createBrowserRouter([
             "View images, pricing, and full details for selected property.",
         },
       },
-
-      // Agent routes
       {
         path: ROUTES.AGENTS,
         children: [
@@ -109,8 +88,6 @@ const router = createBrowserRouter([
           },
         ],
       },
-
-      // Static pages
       {
         path: ROUTES.ABOUT,
         element: withSuspense(<AboutPage />),
@@ -136,7 +113,6 @@ const router = createBrowserRouter([
       },
     ],
   },
-  // Auth route
   {
     path: ROUTES.SIGNIN,
     element: withSuspense(<Login />),
@@ -153,8 +129,6 @@ const router = createBrowserRouter([
       description: "Sign up and start exploring properties.",
     },
   },
-
-  // 404 handling
   {
     path: "*",
     element: <MainLayout>{withSuspense(<NotFoundPage />)}</MainLayout>,

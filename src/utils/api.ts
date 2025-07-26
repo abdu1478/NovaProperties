@@ -20,6 +20,7 @@ export interface Property {
   parking?: string;
   interiorDescription?: string;
   propertyType: string;
+  createdAt?: string;
 }
 
 export interface Agent {
@@ -41,9 +42,38 @@ export interface Testimonial {
   image?: string;
 }
 
+export interface EndUser {
+  fullName: string;
+  email: string;
+  phone: string;
+  message: string;
+  propertyId?: string;
+  sourcePage?: string;
+}
+
 export const fetchFeaturedProperties = async (): Promise<Property[]> => {
-  const response = await axios.get(`${API_BASE_URL}/properties/featured`);
-  return response.data;
+  try {
+    const response = await axios.get<Property[]>(
+      `${API_BASE_URL}/properties/featured`
+    );
+    return response.data;
+  } catch (err) {
+    let errorMessage = "Failed to fetch properties. Please try again later.";
+
+    if (axios.isAxiosError(err)) {
+      if (err.response) {
+        errorMessage =
+          err.response.data?.message ||
+          `Server error: ${err.response.status} ${err.response.statusText}`;
+      } else if (err.request) {
+        errorMessage = "Network error. Please check your connection.";
+      }
+    } else if (err instanceof Error) {
+      errorMessage = err.message;
+    }
+
+    throw new Error(errorMessage);
+  }
 };
 
 export const fetchAgents = async (): Promise<Agent[]> => {
@@ -53,6 +83,7 @@ export const fetchAgents = async (): Promise<Agent[]> => {
 
 export const fetchTestimonials = async (): Promise<Testimonial[]> => {
   const response = await axios.get(`${API_BASE_URL}/testimonials`);
+  console.log(response);
   return response.data;
 };
 export const fetchIndividualProperty = async (
@@ -66,3 +97,73 @@ export const fetchAgentById = async (id: string): Promise<Agent> => {
   const response = await axios.get(`${API_BASE_URL}/agents/${id}`);
   return response.data;
 };
+
+export const fetchFavouriteProperties = async (
+  userId: string
+): Promise<Property[]> => {
+  const response = await axios.get(
+    `${API_BASE_URL}/users/${userId}/favourites`,
+    {
+      withCredentials: true,
+    }
+  );
+  return response.data;
+};
+
+export const setFavouriteProperty = async (
+  userId: string,
+  propertyId: string
+) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/users/${userId}/favourites`,
+      { propertyId },
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error: any) {
+    const errorMessage =
+      error.response?.data?.message || "Failed to set favourite property";
+    throw new Error(errorMessage);
+  }
+};
+
+export const deleteFavouriteProperty = async (
+  userId: string,
+  propertyId: string
+) => {
+  const response = await axios.delete(
+    `${API_BASE_URL}/users/${userId}/favourites/${propertyId}`,
+    {
+      withCredentials: true,
+    }
+  );
+  return response.data;
+};
+
+export async function submitUserMessage(data: {
+  fullName: string;
+  email: string;
+  phone: string;
+  message: string;
+  propertyId?: string;
+  sourcePage?: string;
+  userId?: string;
+  subject: string;
+}) {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/contact`, data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      withCredentials: true, // not "credentials"
+    });
+
+    return response.data;
+  } catch (err: any) {
+    console.error("Contact form error:", err);
+    throw new Error(
+      err.response?.data?.message || "Message submission failed."
+    );
+  }
+}

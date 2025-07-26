@@ -1,19 +1,17 @@
 // src/hocs/withAuth.tsx
 import { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const withAuth = <P extends object>(
   Component: React.ComponentType<P>
 ) => {
   const AuthenticatedComponent = (props: P) => {
-    const { isAuthenticated, isLoading, setRedirectTo } = useAuth();
-    const location = useLocation();
+    const { isAuthenticated, isLoading } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
       if (!isLoading && !isAuthenticated) {
-        setRedirectTo(`${location.pathname}${location.search}`);
         navigate("/signin", { replace: true });
       }
     }, [isAuthenticated, isLoading]);

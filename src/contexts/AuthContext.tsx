@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import {
   createContext,
   useContext,
@@ -6,6 +8,8 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { type CredentialResponse } from "@react-oauth/google";
 
 interface User {
   id: string;
@@ -13,52 +17,34 @@ interface User {
   email: string;
   role: string;
 }
-
-// interface AuthTokens {
-//   accessToken: string;
-//   refreshToken: string;
-// }
+interface SignupResponse {
+  message: string;
+}
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (credentials: { email: string; password: string }) => Promise<void>;
-  logout: () => void;
-  refreshToken: () => Promise<void>;
-  getAccessToken: () => string | null;
+  logout: () => Promise<boolean>;
+  signup: (credentials: {
+    email: string;
+    password: string;
+    name: string;
+  }) => Promise<SignupResponse>;
   redirectTo: string | null;
   setRedirectTo: (path: string | null) => void;
+  googleLogin: (res: CredentialResponse) => Promise<void>;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Token storage with encryption (simplified)
-const secureStorage = {
-  getItem: (key: string): string | null => {
-    try {
-      const item = localStorage.getItem(key);
-      return item ? atob(item) : null;
-    } catch {
-      return null;
-    }
-  },
-  setItem: (key: string, value: string) => {
-    localStorage.setItem(key, btoa(value));
-  },
-  removeItem: (key: string) => {
-    localStorage.removeItem(key);
-  },
-};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [redirectTo, _setRedirectTo] = useState<string | null>(
-    localStorage.getItem("redirectTo") || null
-  );
+  const [redirectTo, _setRedirectTo] = useState<string | null>(null);
 
   const setRedirectTo = useCallback((path: string | null) => {
     if (path) {
@@ -68,108 +54,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     _setRedirectTo(path);
   }, []);
-  // Initialize auth state
+
+  // Check initial auth status
   useEffect(() => {
-    const initializeAuth = async () => {
+    const initialAuth = async () => {
       try {
-        const storedUser = secureStorage.getItem("user");
-        const accessToken = secureStorage.getItem("accessToken");
+        const response = await axios.get(`${API_BASE_URL}/auth/me`, {
+          withCredentials: true,
+        });
 
-        if (storedUser && accessToken) {
-          const isValid = await validateToken(accessToken);
-
-          if (isValid) {
-            setUser(JSON.parse(storedUser));
-          } else {
-            await refreshToken();
-          }
+        if (response.status === 200) {
+          setUser({
+            id: response.data._id,
+            name: response.data.name,
+            email: response.data.email,
+            role: response.data.role,
+          });
         }
       } catch (error) {
-        console.error("Auth initialization error:", error);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
     };
 
-    initializeAuth();
+    initialAuth();
   }, []);
 
-  const validateToken = async (token: string): Promise<boolean> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        try {
-          const payload = JSON.parse(atob(token.split(".")[1]));
-          resolve(payload.exp * 1000 > Date.now());
-        } catch {
-          resolve(false);
-        }
-      }, 500);
-    });
-  };
-
-  // Refresh token functionality
-  const refreshToken = useCallback(async (): Promise<void> => {
-    if (isRefreshing) return;
-
-    setIsRefreshing(true);
-    try {
-      const refreshToken = secureStorage.getItem("refreshToken");
-      if (!refreshToken) throw new Error("No refresh token available");
-
-      // Simulated API call to refresh token
-      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refreshToken }),
-      });
-
-      if (!response.ok) throw new Error("Token refresh failed");
-
-      const { accessToken, refreshToken: newRefreshToken } =
-        await response.json();
-
-      secureStorage.setItem("accessToken", accessToken);
-      secureStorage.setItem("refreshToken", newRefreshToken);
-    } catch (error) {
-      console.error("Token refresh error:", error);
-      logout();
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [isRefreshing]);
-
   const login = useCallback(
-    async (credentials: { email: string; password: string }): Promise<void> => {
-      const { email, password } = credentials;
+    async (credentials: { email: string; password: string }) => {
       setIsLoading(true);
       try {
-        const response = await fetch(`${API_BASE_URL}/auth/signin`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+        await axios.post(`${API_BASE_URL}/auth/login`, credentials, {
+          withCredentials: true,
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          const message =
-            response.status === 401
-              ? "Invalid credentials"
-              : errorData.message || "Login failed";
-          const error = new Error(message);
-          console.error("Login error:", error);
-          throw error;
-        }
+        const userResponse = await axios.get(`${API_BASE_URL}/auth/me`, {
+          withCredentials: true,
+        });
 
-        const { user, accessToken, refreshToken } = await response.json();
-
-        secureStorage.setItem("accessToken", accessToken);
-        secureStorage.setItem("refreshToken", refreshToken);
-        secureStorage.setItem("user", JSON.stringify(user));
-
-        setUser(user);
-        setRedirectTo(null);
+        setUser({
+          id: userResponse.data._id,
+          name: userResponse.data.name,
+          email: userResponse.data.email,
+          role: userResponse.data.role,
+        });
       } catch (error) {
-        console.error("Login error:", error);
+        setUser(null);
         throw error;
       } finally {
         setIsLoading(false);
@@ -178,42 +109,69 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     []
   );
 
-  const logout = useCallback((): void => {
-    secureStorage.removeItem("accessToken");
-    secureStorage.removeItem("refreshToken");
-    secureStorage.removeItem("user");
+  const googleLogin = async (response: CredentialResponse) => {
+    try {
+      const result = await axios.post(
+        `${API_BASE_URL}/auth/google`,
+        { token: response.credential },
+        { withCredentials: true }
+      );
 
-    setUser(null);
+      const { user } = result.data;
+      setUser({
+        id: user._id || user.id, // Handle both _id and id
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      });
+    } catch (err) {
+      console.error("Google login failed:", err);
+      setUser(null);
+    }
+  };
 
-    fetch(`${API_BASE_URL}/auth/logout`, { method: "POST" }).catch(
-      console.error
-    );
-  }, []);
-
-  const getAccessToken = useCallback((): string | null => {
-    return secureStorage.getItem("accessToken");
-  }, []);
-
-  useEffect(() => {
-    const checkTokenExpiration = async () => {
-      const accessToken = getAccessToken();
-      if (!accessToken) return;
-
+  const signup = useCallback(
+    async (credentials: {
+      email: string;
+      password: string;
+      name: string;
+    }): Promise<SignupResponse> => {
+      setIsLoading(true);
       try {
-        const payload = JSON.parse(atob(accessToken.split(".")[1]));
-        const expiresIn = payload.exp * 1000 - Date.now();
-
-        if (expiresIn < 300000) {
-          await refreshToken();
-        }
+        const response = await axios.post(
+          `${API_BASE_URL}/auth/register`,
+          credentials,
+          {
+            withCredentials: true,
+          }
+        );
+        return response.data;
       } catch (error) {
-        console.error("Token expiration check error:", error);
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 409) {
+            throw new Error("Email already registered");
+          }
+        }
+        throw new Error("Signup failed");
+      } finally {
+        setIsLoading(false);
       }
-    };
+    },
+    []
+  );
 
-    const interval = setInterval(checkTokenExpiration, 60000);
-    return () => clearInterval(interval);
-  }, [getAccessToken, refreshToken]);
+  const logout = useCallback(async () => {
+    try {
+      await axios.get(`${API_BASE_URL}/auth/logout`, {
+        withCredentials: true,
+      });
+      setUser(null);
+      return true; // Indicate success
+    } catch (error) {
+      console.error("Logout error:", error);
+      return false; // Indicate failure
+    }
+  }, []);
 
   const value = {
     user,
@@ -221,10 +179,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     login,
     logout,
-    refreshToken,
-    getAccessToken,
+    signup,
     redirectTo,
     setRedirectTo,
+    googleLogin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -238,22 +196,21 @@ export const useAuth = (): AuthContextType => {
   return context;
 };
 
-import { useLocation, useNavigate } from "react-router-dom";
-
+// HOC for protected routes
 export const withAuth = <P extends object>(
   Component: React.ComponentType<P>
-): React.FC<P> => {
-  const AuthenticatedComponent: React.FC<P> = (props) => {
-    const { isAuthenticated, isLoading, setRedirectTo } = useAuth();
+) => {
+  return function WithAuthComponent(props: P) {
+    const { isAuthenticated, isLoading, redirectTo, setRedirectTo } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
 
     useEffect(() => {
       if (!isLoading && !isAuthenticated) {
         setRedirectTo(location.pathname);
-        navigate("/signin", { replace: true });
+        navigate("/signin");
       }
-    }, [isAuthenticated, isLoading]);
+    }, [isAuthenticated, isLoading, location]);
 
     if (isLoading) {
       return (
@@ -263,33 +220,43 @@ export const withAuth = <P extends object>(
       );
     }
 
-    if (!isAuthenticated) {
+    return isAuthenticated ? <Component {...props} /> : null;
+  };
+};
+
+// HOC for public-only routes
+export const withoutAuth = <P extends object>(
+  Component: React.ComponentType<P>
+) => {
+  return function WithoutAuthComponent(props: P) {
+    const { isAuthenticated, isLoading, redirectTo } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+      if (!isLoading && isAuthenticated) {
+        navigate(redirectTo || "/");
+      }
+    }, [isAuthenticated, isLoading, redirectTo]);
+
+    if (isLoading) {
       return (
         <div className="min-h-screen flex items-center justify-center">
-          Redirecting to sign in...
+          Loading...
         </div>
       );
     }
 
-    return <Component {...props} />;
+    return !isAuthenticated ? <Component {...props} /> : null;
   };
-
-  return AuthenticatedComponent;
 };
 
-// Higher-order component for role-based access
+// HOC for role-based access
 export const withRole = <P extends object>(
   Component: React.ComponentType<P>,
   requiredRole: string
-): React.FC<P> => {
-  const AuthorizedComponent: React.FC<P> = (props) => {
+) => {
+  return function WithRoleComponent(props: P) {
     const { user, isAuthenticated, isLoading } = useAuth();
-
-    useEffect(() => {
-      if (!isLoading && isAuthenticated && user?.role !== requiredRole) {
-        window.location.href = "/unauthorized";
-      }
-    }, [isAuthenticated, isLoading, user]);
 
     if (isLoading) {
       return (
@@ -299,24 +266,14 @@ export const withRole = <P extends object>(
       );
     }
 
-    if (!isAuthenticated) {
+    if (!isAuthenticated || user?.role !== requiredRole) {
       return (
         <div className="min-h-screen flex items-center justify-center">
-          Redirecting to login...
-        </div>
-      );
-    }
-
-    if (user?.role !== requiredRole) {
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          Checking permissions...
+          Unauthorized
         </div>
       );
     }
 
     return <Component {...props} />;
   };
-
-  return AuthorizedComponent;
 };

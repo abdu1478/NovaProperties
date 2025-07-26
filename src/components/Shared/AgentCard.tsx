@@ -51,7 +51,7 @@ const AgentCard: React.FC<AgentCardProps> = ({ agents }) => {
         whileHover={{ scale: 1.03 }}
         className="h-full"
       >
-        <Card className="group cursor-pointer shadow-md hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden text-center bg-background h-full">
+        <Card className="group shadow-md hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden text-center bg-background h-full">
           <CardContent className="p-6 h-full flex flex-col">
             {/* Agent Image */}
             <div className="flex flex-col items-center mb-4">
@@ -156,7 +156,7 @@ const AgentCard: React.FC<AgentCardProps> = ({ agents }) => {
                 state={{ from: location.pathname }}
                 className="inline-block w-full"
               >
-                <Button className="w-full group bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm">
+                <Button className="w-full group bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm cursor-pointer">
                   Contact Agent
                   <Mail className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>

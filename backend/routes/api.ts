@@ -4,7 +4,6 @@ import dotenv from "dotenv";
 import { Property, Agent, Testimonial, User } from "../models/model";
 import { Document } from "mongoose";
 import { IUser } from "../models/model";
-import { cacheMiddleware } from "../utils/cache";
 
 declare global {
   namespace Express {

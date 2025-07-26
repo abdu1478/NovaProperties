@@ -13,4 +13,5 @@
     ],
   },
     "include": ["./server.ts", "./models/**/*.ts", "./routes/**/*.ts"],
+    "exclude": ["node_modules"]
 }

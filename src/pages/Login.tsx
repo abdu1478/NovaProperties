@@ -5,30 +5,39 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner";
+import { withoutAuth } from "@/hooks/withOutAuth";
+import { motion } from "framer-motion";
+// import { GoogleLogin } from "@react-oauth/google";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const { login, isLoading, redirectTo } = useAuth();
+  const { login, isLoading } = useAuth();
   const navigate = useNavigate();
-  const from = redirectTo || "/";
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
+
+  // const from = redirectTo;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await login({ email, password });
-
       toast.success("Login successful! Redirecting...");
-      navigate(from, { replace: true });
+      navigate(`${from}`, { replace: true });
     } catch (error: any) {
       console.error("Login error:", error);
       setError(error.message);
     }
+  };
+
+  const handleGoogle = async () => {
+    console.log("hello");
   };
 
   return (
@@ -38,11 +47,17 @@ const LoginPage = () => {
         className="min-h-screen flex items-center justify-center bg-background p-4 relative"
         aria-labelledby="login"
       >
+        <Toaster position="bottom-right" richColors />
         <div className="absolute top-4 right-4">
           <ModeToggle />
         </div>
 
-        <div className="w-full max-w-md">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeInOut" }}
+          className="w-full max-w-md"
+        >
           <div className="text-center mb-8">
             <div className="mx-auto mb-4">
               <div className="bg-primary/10 p-3 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
@@ -157,7 +172,11 @@ const LoginPage = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <Button variant="outline" className="gap-2">
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={handleGoogle}
+              >
                 <svg className="h-4 w-4" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"
@@ -189,10 +208,16 @@ const LoginPage = () => {
               </Button>
             </div>
           </div>
-        </div>
+        </motion.div>
+        {/* <div>
+          <GoogleLogin
+            onSuccess={googleLogin}
+            onError={() => console.error("Login Failed")}
+          />
+        </div> */}
       </section>
     </>
   );
 };
 
-export default LoginPage;
+export default withoutAuth(LoginPage);

@@ -80,13 +80,13 @@ function AboutUsSection() {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4 h-full">
-                <div className="bg-accent rounded-lg flex flex-col items-center justify-center">
+                <div className="bg-accent rounded-lg flex flex-col items-center justify-center px-6">
                   <span className="text-3xl font-bold">
                     <AnimatedCounter to={10} suffix="K+" />
                   </span>
                   <span>Happy Clients</span>
                 </div>
-                <div className="bg-accent rounded-lg flex flex-col items-center justify-center">
+                <div className="bg-accent rounded-lg flex flex-col items-center justify-center px-12">
                   <span className="text-3xl font-bold">
                     <AnimatedCounter to={50} suffix="+" />
                   </span>

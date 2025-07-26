@@ -188,7 +188,7 @@ function HomePage() {
           <div className="text-center mt-12">
             <Link
               to={`${ROUTES.PROPERTIES}`}
-              className="btn btn--view bg-primary text-primary-foreground rounded-lg px-8 py-3 font-bold"
+              className="btn btn--view bg-primary text-primary-foreground rounded-lg px-8 py-3 font-bold hover:bg-primary/95 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               View All Listings
             </Link>

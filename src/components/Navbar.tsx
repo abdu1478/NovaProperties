@@ -17,6 +17,8 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import RefForwardedLink from "./RefForwardedLink";
 import { useAuth } from "@/contexts/AuthContext";
+import { ROUTES } from "@/constants/routes";
+import { toast } from "sonner";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -33,7 +35,19 @@ function Navbar() {
   const mobileSearchInputRef = useRef<HTMLInputElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    setMobileOpen(false);
+    const success = await logout();
+
+    if (success) {
+      toast.success("You've been logged out successfully");
+      setTimeout(() => navigate("/"), 1000);
+    } else {
+      toast.error("Logout failed. Please try again.");
+    }
+  };
 
   // Lazy load logo
   useEffect(() => {
@@ -112,12 +126,12 @@ function Navbar() {
     { name: "Home", href: "/", icon: <Home size={16} /> },
     {
       name: "Properties",
-      href: "/properties/listings",
+      href: ROUTES.PROPERTIES,
       icon: <Key size={16} />,
     },
-    { name: "About", href: "/about-us", icon: <CalendarDays size={16} /> },
-    { name: "Favorites", href: "/favorite", icon: <Heart size={16} /> },
-    { name: "Agents", href: "/agents", icon: <User size={16} /> },
+    { name: "About", href: ROUTES.ABOUT, icon: <CalendarDays size={16} /> },
+    { name: "Favorites", href: ROUTES.FAVORITES, icon: <Heart size={16} /> },
+    { name: "Agents", href: ROUTES.AGENTS, icon: <User size={16} /> },
   ];
 
   // Handle search
@@ -148,11 +162,11 @@ function Navbar() {
         "bg-background/80 backdrop-blur-md border-b border-border/50",
         "supports-[backdrop-filter]:bg-background/60",
         scrolled ? "py-1 max-sm:py-1" : "py-1 max-sm:py-1",
-        " lg:py-4"
+        "lg:py-4"
       )}
     >
       <div className="mx-auto px-3 sm:px-4 lg:px-6 max-w-7xl">
-        {/* Mobile Search  */}
+        {/* Mobile Search */}
         <AnimatePresence>
           {showMobileSearch && (
             <motion.div
@@ -234,7 +248,7 @@ function Navbar() {
                 asChild
                 variant="ghost"
                 className={cn(
-                  "font-medium  px-3 py-2",
+                  "font-medium px-3 py-2",
                   "hover:bg-accent hover:scale-105",
                   "text-sm lg:text-base",
                   isActive(item.href) && "bg-accent/80 font-semibold"
@@ -295,16 +309,25 @@ function Navbar() {
             </form>
 
             {/* User Actions */}
-            {!user && (
+            {!user ? (
               <div className="hidden md:flex items-center gap-2">
                 <Link
                   to="/signin"
-                  onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-2 px-4 py-1.5 border-2 text-sm lg:text-base rounded-md transition-all duration-200 hover:scale-[1.02] hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <User size={18} />
                   <span>Sign In</span>
                 </Link>
+              </div>
+            ) : (
+              <div className="hidden md:flex items-center gap-2">
+                <Button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-4 py-1.5 border-2 text-sm lg:text-base rounded-md transition-all cursor-pointer duration-200 hover:bg-accent/70 hover:text-white"
+                >
+                  <User size={18} />
+                  <span>Log out</span>
+                </Button>
               </div>
             )}
 
@@ -377,25 +400,37 @@ function Navbar() {
                   transition={{ delay: 0.4 }}
                   className="flex flex-col sm:flex-row gap-3 pt-4 px-2"
                 >
-                  {!user && (
-                    <div className="hidden md:flex items-center gap-2">
+                  {/* Fixed: Removed hidden class from mobile auth buttons */}
+                  {!user ? (
+                    <div className="md:hidden flex items-center w-1/2">
                       <Link
                         to="/signin"
                         onClick={() => setMobileOpen(false)}
-                        className="flex items-center gap-2 px-4 py-1.5 border-2 text-sm lg:text-base rounded-md transition-all duration-200 hover:scale-[1.02] hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-primary"
-                        state={{ from: location.pathname }}
+                        className="flex items-center justify-center gap-2 px-3 py-0.5 w-full border-2 rounded-md transition-all cursor-pointer duration-200 hover:bg-accent/70 hover:text-white text-base sm:text-lg"
                       >
                         <User size={18} />
                         <span>Sign In</span>
                       </Link>
                     </div>
+                  ) : (
+                    <div className="flex items-center gap-2 w-full md:hidden">
+                      <Button
+                        onClick={handleLogout}
+                        className="flex items-center justify-center gap-2 px-4 py-3 w-full rounded-md transition-all duration-200 hover:text-background focus:outline-none focus:ring-2 focus:ring-primary text-base sm:text-lg"
+                      >
+                        <User size={18} />
+                        <span>Log out</span>
+                      </Button>
+                    </div>
                   )}
+
                   <Button
                     variant="secondary"
-                    className="bg-muted-foreground flex-1 py-3 transition-all duration-200 hover:scale-105 text-base sm:text-lg cursor-pointer"
+                    className="bg-primary flex-1 py-3 transition-all duration-200 hover:scale-105 text-base sm:text-lg cursor-pointer text-background"
                   >
                     List Property
                   </Button>
+
                   <div className="sm:hidden flex justify-center pt-2">
                     <ModeToggle />
                   </div>

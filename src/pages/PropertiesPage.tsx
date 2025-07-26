@@ -49,29 +49,45 @@ const PropertiesPage = () => {
   const [sortOption, setSortOption] = useState(searchParams.get("sort") || "");
 
   console.log(isSyncing);
-  useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchFeaturedProperties();
-        data.map((item, index) => {
-          console.log(`property `, index, item);
-        });
-        setProperties(data);
-      } catch (err) {
-        setError("Failed to load properties");
-      } finally {
-        setLoading(false);
-      }
-    };
 
+  const fetchProperties = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await fetchFeaturedProperties();
+      setProperties(data);
+    } catch (err) {
+      let errorMessage = "Failed to load properties";
+
+      if (err instanceof Error) {
+        if (err.message.includes("network")) {
+          errorMessage = "Network error. Please check your connection.";
+        } else if (err.message.includes("HTTP error")) {
+          errorMessage = "Server error. Please try again later.";
+        } else {
+          errorMessage = err.message;
+        }
+      }
+
+      setError(errorMessage);
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProperties();
+
     const individual = async () => {
+      if (!properties) {
+        return null;
+      }
       try {
-        const data = await fetchIndividualProperty(properties[0]._id);
+        const data = await fetchIndividualProperty(properties[0]?._id);
         console.log("Individual Property Data:", data);
       } catch (err) {
-        console.error("Failed to fetch individual property:", err);
+        return;
       }
     };
     individual();
@@ -120,7 +136,7 @@ const PropertiesPage = () => {
 
   // Reset all filters
   const resetFilters = () => {
-    navigate("/properties", { replace: true });
+    navigate("/properties/listings", { replace: true });
 
     setActiveFilter("buy");
     setSearchTerm("");
@@ -326,7 +342,13 @@ const PropertiesPage = () => {
       ) : error ? (
         <div className="text-center py-12">
           <p className="text-destructive">{error}</p>
-          <Button className="mt-4" onClick={() => window.location.reload()}>
+          <Button
+            className="mt-4"
+            onClick={() => {
+              setError(null);
+              fetchProperties();
+            }}
+          >
             Retry
           </Button>
         </div>

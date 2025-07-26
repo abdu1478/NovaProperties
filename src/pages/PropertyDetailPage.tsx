@@ -17,7 +17,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { fetchIndividualProperty, type Property } from "@/utils/api";
+import {
+  fetchAgentById,
+  fetchIndividualProperty,
+  type Agent,
+  type Property,
+} from "@/utils/api";
+import { formatPrice } from "@/utils/formatPrice";
+import { useFavorites } from "@/contexts/FavoritesContext";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import AgentContactForm from "@/components/AgentContact";
+import { useAuth } from "@/contexts/AuthContext";
 
 const PropertyDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,9 +35,11 @@ const PropertyDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const { user } = useAuth();
   const location = useLocation();
   const from = location.state?.from || "/properties/listings";
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const [agent, setAgent] = useState<Agent | null>(null);
 
   const getBackButtonText = () => {
     switch (from) {
@@ -54,9 +66,14 @@ const PropertyDetail: React.FC = () => {
         setLoading(true);
         const propertyData = await fetchIndividualProperty(id);
         setProperty(propertyData);
+        const agentId = propertyData?.agentId?.toString?.();
+        if (agentId) {
+          const agentData = await fetchAgentById(agentId);
+          setAgent(agentData);
+          console.log(agentData);
+        }
       } catch (err) {
         setError("Failed to load property details");
-        toast.error("Failed to load property details. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -65,9 +82,10 @@ const PropertyDetail: React.FC = () => {
     loadProperty();
   }, [id]);
 
-  const handleFavorite = () => {
-    setIsFavorite(!isFavorite);
-    toast.success(isFavorite ? "Removed from favorites" : "Added to favorites");
+  const handleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!property) return;
+    toggleFavorite(property._id);
   };
 
   const handleShare = () => {
@@ -86,7 +104,7 @@ const PropertyDetail: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <LoadingSpinner />
           <p className="text-muted-foreground">Loading property details...</p>
         </div>
       </div>
@@ -98,23 +116,13 @@ const PropertyDetail: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
           <p className="text-destructive">{error || "Property not found"}</p>
-          <Link to="/">
-            <Button variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Properties
-            </Button>
-          </Link>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
         </div>
       </div>
     );
   }
-
-  // Format price as currency
-  const formattedPrice = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(property.price);
 
   return (
     <main className="min-h-screen bg-background">
@@ -135,13 +143,14 @@ const PropertyDetail: React.FC = () => {
               </Button>
               <Button variant="outline" size="sm" onClick={handleFavorite}>
                 <Heart
-                  className="w-4 h-4 mr-2"
-                  fill={isFavorite ? "var(--chart-5)" : "none"}
+                  fill={isFavorite(property._id) ? "var(--chart-5)" : "none"}
                   color={
-                    isFavorite ? "var(--chart-5)" : "var(--muted-foreground)"
+                    isFavorite(property._id)
+                      ? "var(--chart-5)"
+                      : "var(--muted-foreground)"
                   }
                 />
-                {isFavorite ? "Saved" : "Save"}
+                {isFavorite(property._id) ? "Saved" : "Save"}
               </Button>
             </div>
           </div>
@@ -236,7 +245,7 @@ const PropertyDetail: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-3xl font-bold text-primary">
-                    {formattedPrice}
+                    {formatPrice(property.price)}
                   </p>
                   {property.category === "Rent" && (
                     <p className="text-sm text-muted-foreground">/month</p>
@@ -244,7 +253,6 @@ const PropertyDetail: React.FC = () => {
                 </div>
               </div>
             </header>
-
             {/* Property Stats */}
             <Card>
               <CardContent className="p-6">
@@ -296,7 +304,6 @@ const PropertyDetail: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-
             {/* Description */}
             {property.description && (
               <Card>
@@ -308,7 +315,6 @@ const PropertyDetail: React.FC = () => {
                 </CardContent>
               </Card>
             )}
-
             {/* Features */}
             {property.features && property.features.length > 0 && (
               <Card>
@@ -327,43 +333,18 @@ const PropertyDetail: React.FC = () => {
                 </CardContent>
               </Card>
             )}
-
             <Separator />
-
-            {/* Contact Information - Removed since it's not in the Property interface */}
-            {/* <Card>
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Contact Agent</h2>
-                {property.contactName && (
-                  <p className="font-medium text-lg mb-4">
-                    {property.contactName}
-                  </p>
-                )}
-                <div className="space-y-3">
-                  {property.contactPhone && (
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => handleContact("phone")}
-                    >
-                      <Phone className="w-4 h-4 mr-2" />
-                      {property.contactPhone}
-                    </Button>
-                  )}
-                  {property.contactEmail && (
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => handleContact("email")}
-                    >
-                      <Mail className="w-4 h-4 mr-2" />
-                      {property.contactEmail}
-                    </Button>
-                  )}
-                  <Button className="w-full">Schedule Viewing</Button>
-                </div>
-              </CardContent>
-            </Card> */}
+            <div className="w-full">
+              {user && agent ? (
+                <AgentContactForm
+                  agent={agent}
+                  userEmail={user.email}
+                  userName={user.name}
+                />
+              ) : agent ? (
+                <AgentContactForm agent={agent} userEmail="" userName="" />
+              ) : null}
+            </div>
           </section>
         </div>
       </div>

@@ -14,9 +14,8 @@ dist-ssr
 .env
 .env.local
 .env.development.local
-userSeed.js
-seed.js
-
+backend
+realestate-backend
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,3 +1,4 @@
+import ContactSection from "@/components/Shared/ContactUs";
 import { Phone, Mail, Clock, MapPin } from "lucide-react";
 
 const ContactPage = () => {
@@ -115,10 +116,10 @@ const ContactPage = () => {
                       </h3>
                       <p className="text-muted-foreground mt-1">
                         <a
-                          href="tel:8001234567"
+                          href="tel:2519023456"
                           className="hover:text-primary transition-colors font-medium"
                         >
-                          (800) 123-4567
+                          (251) 902-345678
                         </a>
                       </p>
                       <p className="text-sm text-muted-foreground mt-2">
@@ -147,7 +148,7 @@ const ContactPage = () => {
                         </a>
                       </p>
                       <p className="text-sm text-muted-foreground mt-2">
-                        Average response time: 2 business hours
+                        Average response time: 24 business hours
                       </p>
                     </div>
                   </div>
@@ -164,7 +165,7 @@ const ContactPage = () => {
                         Office Hours
                       </h3>
                       <p className="text-muted-foreground mt-1">
-                        Monday-Friday: 9am-6pm
+                        Monday-Friday: 8am-5pm
                       </p>
                       <p className="text-muted-foreground">
                         Saturday: 10am-4pm
@@ -187,13 +188,14 @@ const ContactPage = () => {
                         Visit Us
                       </h3>
                       <p className="text-muted-foreground mt-1">
-                        123 Main Street
+                        Bole medhanialem tezera building, <br /> 2nd floor
+                        office number 203
                       </p>
                       <p className="text-muted-foreground">
-                        New York, NY 10001
+                        Bole, Addis Ababa, Ethiopia
                       </p>
                       <p className="text-sm text-muted-foreground mt-2">
-                        Free parking available in rear lot
+                        Free on-site parking available behind the building.
                       </p>
                     </div>
                   </div>
@@ -215,146 +217,7 @@ const ContactPage = () => {
 
               {/* Enhanced Contact Form */}
               <div>
-                <div className="bg-card rounded-xl shadow-lg p-6 sm:p-8 border border-border">
-                  <header className="mb-8">
-                    <h3 className="text-2xl font-bold text-foreground">
-                      Send Us a Message
-                    </h3>
-                    <p className="text-muted-foreground mt-2">
-                      We'll respond within 24 business hours
-                    </p>
-                  </header>
-
-                  <form className="space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <div>
-                        <label
-                          htmlFor="name"
-                          className="block text-sm font-medium text-foreground mb-2"
-                        >
-                          Full Name *
-                        </label>
-                        <input
-                          type="text"
-                          id="name"
-                          className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm"
-                          placeholder="Your name"
-                          required
-                          aria-required="true"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="email"
-                          className="block text-sm font-medium text-foreground mb-2"
-                        >
-                          Email Address *
-                        </label>
-                        <input
-                          type="email"
-                          id="email"
-                          className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm"
-                          placeholder="your.email@example.com"
-                          required
-                          aria-required="true"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <div>
-                        <label
-                          htmlFor="phone"
-                          className="block text-sm font-medium text-foreground mb-2"
-                        >
-                          Phone Number
-                        </label>
-                        <input
-                          type="tel"
-                          id="phone"
-                          className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm"
-                          placeholder="(123) 456-7890"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="subject"
-                          className="block text-sm font-medium text-foreground mb-2"
-                        >
-                          Inquiry Type
-                        </label>
-                        <select
-                          id="subject"
-                          className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm bg-white"
-                        >
-                          <option>General Inquiry</option>
-                          <option>Property Viewing</option>
-                          <option>List My Property</option>
-                          <option>Investment Consultation</option>
-                          <option>Other</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="message"
-                        className="block text-sm font-medium text-foreground mb-2"
-                      >
-                        Message *
-                      </label>
-                      <textarea
-                        id="message"
-                        rows={4}
-                        className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm"
-                        placeholder="How can we assist you with your real estate needs?"
-                        required
-                        aria-required="true"
-                      ></textarea>
-                    </div>
-
-                    <div className="flex items-center">
-                      <input
-                        id="consent"
-                        type="checkbox"
-                        className="h-4 w-4 text-primary focus:ring-primary border-border rounded"
-                        required
-                      />
-                      <label
-                        htmlFor="consent"
-                        className="ml-2 block text-sm text-muted-foreground"
-                      >
-                        I agree to Nova Properties' Privacy Policy and Terms of
-                        Service
-                      </label>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg py-4 font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition duration-200"
-                    >
-                      Send Message
-                    </button>
-                  </form>
-                </div>
-
-                {/* Testimonials */}
-                <div className="mt-12 bg-accent/20 p-6 rounded-xl border border-border">
-                  <h3 className="font-bold text-lg text-foreground mb-4">
-                    What Our Clients Say
-                  </h3>
-                  <div className="space-y-4">
-                    <blockquote className="text-muted-foreground italic">
-                      "The Nova team responded to my inquiry within hours and
-                      helped me find my dream home in record time!"
-                    </blockquote>
-                    <p className="text-foreground font-medium">
-                      - Sarah Johnson
-                    </p>
-                  </div>
-                </div>
+                <ContactSection />
               </div>
             </div>
           </div>

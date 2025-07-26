@@ -4,19 +4,19 @@ import type { Property } from "@/utils/api";
 import { Link, useLocation } from "react-router-dom";
 import { formatPrice } from "@/utils/formatPrice";
 import { ROUTES } from "@/constants/routes";
+
+import { useFavorites } from "@/contexts/FavoritesContext";
+
 interface PropertyCardProps {
   property: Property;
+  isFavoritePage?: boolean;
+  onFavoriteChange?: (propertyId: string, isFavorite: boolean) => void;
 }
 
 const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
   const [imageError, setImageError] = useState<boolean>(false);
-  const [isFavorite, setIsFavorite] = useState<boolean>(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
   const location = useLocation();
-
-  const handleFavorite = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsFavorite(!isFavorite);
-  };
 
   return (
     <article
@@ -24,9 +24,10 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
       aria-labelledby={`property-${property._id}-title`}
     >
       <figure className="relative aspect-[4/3] overflow-hidden">
-        {property.images[0] &&
+        {Array.isArray(property.images) &&
+        property.images.length > 0 &&
         !imageError &&
-        property.type !== "Commercial Office" ? (
+        property.propertyType !== "Office" ? (
           <img
             src={property.images[0]}
             alt={`${property.bedrooms} bedroom ${property.type} in ${property.location}`}
@@ -34,7 +35,9 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
             onError={() => setImageError(true)}
             loading="lazy"
           />
-        ) : property.type === "Commercial Office" ? (
+        ) : property.type === "Commercial Office" &&
+          Array.isArray(property.images) &&
+          property.images.length > 1 ? (
           <img
             src={property.images[1]}
             alt={`office in ${property.location} image`}
@@ -54,14 +57,14 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
           {property.category}
         </div>
         <button
-          onClick={handleFavorite}
+          onClick={() => toggleFavorite(property._id)}
           className="absolute top-3 right-3 bg-background/80 p-2 rounded-full hover:bg-background transition-colors"
-          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          aria-label="Fav"
         >
           <Heart
             className={`w-4 h-4`}
-            fill={isFavorite ? "var(--chart-5)" : "none"}
-            color={isFavorite ? "var(--chart-5)" : "var(--muted-foreground)"}
+            fill={isFavorite(property._id) ? "red" : "none"}
+            style={{ color: isFavorite(property._id) ? "red" : "currentColor" }}
           />
         </button>
       </figure>
@@ -147,8 +150,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         <Link
           to={ROUTES.PROPERTY_DETAIL.replace(":id", property._id)}
           state={{ from: location.pathname }}
-          className="w-full inline-block text-center bg-primary hover:bg-primary/90 text-primary-foreground rounded-md py-2 px-4 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label={`View details for ${property.type}`}
+          className="w-full inline-block text-center bg-primary hover:bg-primary/95 text-primary-foreground rounded-md py-2 px-4 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label={`View details for properties`}
         >
           View Details
         </Link>

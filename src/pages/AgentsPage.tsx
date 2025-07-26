@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Phone, Search } from "lucide-react";
 import AgentCard from "@/components/Shared/AgentCard"; // Import the new card component
 import { fetchAgents, type Agent } from "@/utils/api";
+import { Link } from "react-router-dom";
 
 const AgentsPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -110,12 +111,22 @@ const AgentsPage = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="group">
+            <Button size="lg" className="group cursor-pointer">
               Schedule Consultation
               <Phone className="w-4 h-4 ml-2 group-hover:scale-110 transition-transform" />
             </Button>
-            <Button variant="outline" size="lg">
-              Browse Properties
+            <Button
+              className="group cursor-pointer outline-none"
+              variant="outline"
+              size="lg"
+            >
+              <Link
+                to="/properties/listings"
+                className="flex items-center font-semibold"
+              >
+                <Search className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                Browse Properties
+              </Link>
             </Button>
           </div>
         </div>

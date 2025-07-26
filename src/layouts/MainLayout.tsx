@@ -18,9 +18,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       <DocumentHead />
       {!hideLayout && <Navbar />}
       <main role="main" tabIndex={-1}>
+        <Toaster position="bottom-right" richColors />
         {children || <Outlet />}
       </main>
-      <Toaster />
       <Analytics />
       {!hideLayout && <Footer />}
     </>
