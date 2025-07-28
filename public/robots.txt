@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /signin
+Disallow: /signup
+Disallow: /favorite
+Disallow: /agents
+Allow: /
+
+Sitemap: https://www.novaproperties.com/sitemap.xml

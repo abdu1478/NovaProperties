@@ -265,7 +265,7 @@ function Navbar() {
                   {/* Active indicator bar */}
                   {isActive(item.href) && (
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary hidden"
                       layoutId="activeIndicator"
                       transition={{
                         type: "spring",

@@ -38,34 +38,36 @@ const FilterControls = ({
   const getPriceOptions = () => {
     const baseOptions = [
       { value: "any", label: "Any Price" },
-      { value: "0-250000", label: `Under ${formatPrice(250000)}` },
+      { value: "0-3000000", label: `Under ${formatPrice(3000000)}` },
       {
-        value: "250000-500000",
-        label: `${formatPrice(250000)} - ${formatPrice(500000)}`,
+        value: "3000000-7000000",
+        label: `${formatPrice(3000000)} - ${formatPrice(7000000)}`,
       },
       {
-        value: "500000-1000000",
-        label: `${formatPrice(500000)} - ${formatPrice(1000000)}`,
+        value: "7000000-15000000",
+        label: `${formatPrice(7000000)} - ${formatPrice(15000000)}`,
       },
-      { value: "1000000-0", label: `${formatPrice(1000000)}+` },
+      {
+        value: "15000000-30000000",
+        label: `${formatPrice(15000000)} - ${formatPrice(30000000)}`,
+      },
+      { value: "30000000-0", label: `${formatPrice(30000000)}+` },
     ];
 
     if (activeFilter === "rent") {
       return [
         baseOptions[0],
+        { value: "any", label: "Any Price" },
+        { value: "0-10000", label: `Under ${formatPrice(10000)}` },
         {
-          value: "0-10000",
-          label: `Under ${formatPrice(10000)}`,
+          value: "10000-20000",
+          label: `${formatPrice(10000)} - ${formatPrice(20000)}`,
         },
         {
-          value: "10000-25000",
-          label: `${formatPrice(10000)} - ${formatPrice(25000)}`,
+          value: "20000-40000",
+          label: `${formatPrice(20000)} - ${formatPrice(40000)}`,
         },
-        {
-          value: "25000-50000",
-          label: `${formatPrice(25000)} - ${formatPrice(50000)}`,
-        },
-        { value: "50000-0", label: `${formatPrice(50000)}+` },
+        { value: "40000-0", label: `${formatPrice(40000)}+` },
       ];
     }
     return baseOptions;
@@ -73,7 +75,7 @@ const FilterControls = ({
 
   return (
     <div className="bg-card rounded-xl shadow-sm p-6 mb-8 border border-border">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,_minmax(200px,_1fr))] gap-4 items-end">
         <div>
           <label className="block text-sm font-medium text-muted-foreground mb-2">
             Property Type
@@ -106,13 +108,18 @@ const FilterControls = ({
             Price Range
           </label>
           <Select value={priceRange} onValueChange={onPriceRangeChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select range" />
+            <SelectTrigger className="truncate w-full max-w-[200px]">
+              <SelectValue placeholder="Select range" className="truncate" />
             </SelectTrigger>
             <SelectContent>
               {getPriceOptions().map((option) => (
                 <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+                  <span
+                    title={option.label}
+                    className="truncate block max-w-[220px]"
+                  >
+                    {option.label}
+                  </span>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -124,7 +131,7 @@ const FilterControls = ({
             Bedrooms
           </label>
           <Select value={bedrooms} onValueChange={onBedroomsChange}>
-            <SelectTrigger>
+            <SelectTrigger className="truncate w-full max-w-[200px]">
               <SelectValue placeholder="Any bedrooms" />
             </SelectTrigger>
             <SelectContent>

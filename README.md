@@ -1,40 +1,47 @@
-# 🏠 Full-Stack Property Platform
+# 🏠 NovaProperties – Real Estate Web App (Frontend)
 
-A modern full-stack web application for real estate listings and property management. Built with a React + Vite frontend styled using Tailwind CSS and shadcn/ui, backed by a Node.js + Express API and MongoDB database.
-
----
-
-## 🚀 Features
-
-- 🔐 User authentication
-- 🏡 Property listings with detailed views
-- ❤️ Favorite properties
-- 👨‍💼 Agent profiles and contact info
-- 🔍 Search and filter by type, location, and more
-- 📱 Responsive and mobile-friendly UI
+NovaProperties is a modern real estate web application frontend built with **React + Vite** and styled using **Tailwind CSS** and **shadcn/ui**. It enables users to explore, favorite, and contact agents about listed properties. This is the **frontend-only** repository — you can either use the hosted backend or clone the backend repo separately.
 
 ---
 
-## 🛠 Tech Stack
+## 🌐 Live Backend
+
+You can connect this frontend to the hosted backend at:
+
+```
+https://realestate-backend-ixih.onrender.com
+```
+
+Or, for full control, clone and customize the backend:
+
+```bash
+git clone git@github.com:abdu1478/realestate-backend.git
+```
+
+---
+
+## ✨ Features
+
+* 🔐 User authentication (login & registration)
+* 🏡 View all properties and detailed property pages
+* ❤️ Favorite properties
+* 📤 Share properties with friends
+* 👨‍🏠 Agent contact per listing
+* 🔍 Filter and search by location, type, etc.
+* 💻 Fully responsive and mobile-friendly
+
+---
+
+## 🛠️ Tech Stack
 
 ### Frontend
 
-- **React** – UI framework
-- **Vite** – Build tool for lightning-fast development
-- **Tailwind CSS** – Utility-first CSS framework
-- **shadcn/ui** – Accessible UI components (based on Radix UI)
-- **React Router DOM** – Declarative routing
-- **Lucide Icons** – Modern icon library
-
-### Backend
-
-- **Node.js** – JavaScript runtime
-- **Express.js** – Backend web framework
-- **MongoDB** – NoSQL database (with Mongoose ORM)
-- **dotenv** – Environment variable management
-- **jsonwebtoken** – JWT-based authentication
-- **bcrypt** – Password hashing
-- **cors**, **helmet**, **morgan** – Security and logging middleware
+* **React** – UI library
+* **Vite** – Fast build tool
+* **Tailwind CSS** – Utility-first styling
+* **shadcn/ui** – Accessible UI components
+* **Lucide Icons** – Clean icon system
+* **React Router DOM** – Routing
 
 ---
 
@@ -43,90 +50,87 @@ A modern full-stack web application for real estate listings and property manage
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/abdu1478/NovaProperties.git
+git clone git@github.com:abdu1478/NovaProperties.git
 cd NovaProperties
-2. Setup Environment Variables
-Create .env files in both /client and /backend folders.
+```
 
-/server/.env example:
-env
-Copy
-Edit
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-3. Install Dependencies
-Frontend (Vite + React):
-bash
-Copy
-Edit
-cd Realstate
+### 2. Install Dependencies
+
+```bash
 npm install
-Backend (Express + MongoDB):
-bash
-Copy
-Edit
-cd backend
-npm install
-4. Run the Development Servers
-Start Backend:
-bash
-Copy
-Edit
-cd backend
+```
+
+### 3. Create a `.env` file
+
+Inside the root of the project:
+
+```env
+VITE_API_BASE_URL=https://realestate-backend-ixih.onrender.com
+```
+
+Or point to your locally running backend if you've cloned it.
+
+### 4. Start the Dev Server
+
+```bash
 npm run dev
-Start Frontend:
-bash
-Copy
-Edit
-cd NovaProperties
-npm run dev
-📁 Folder Structure
-bash
-Copy
-Edit
-property-platform/
-├── src/            # React frontend
-│   ├── index.html
-│   └── vite.config.ts
-├── backend/            # Express backend
-│   ├── routes/
-│   ├── models/
-└── README.md
-📦 Scripts
-Frontend (React)
-bash
-Copy
-Edit
-npm install        # Install
-npm run dev        # Start dev server
-npm run build      # Build for production
-npm run preview    # Preview built app
-Backend (Node.js)
-bash
-Copy
-Edit
-npm run dev        # Start dev server with nodemon
-📄 License & Attribution
-shadcn/ui is MIT-licensed but requires attribution. Learn more: https://ui.shadcn.com/docs/installation/license
-
-Other dependencies are under their respective open-source licenses.
-
-🙌 Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-✉️ Contact
-Have questions or suggestions?
-
-Reach out at abduseid14789@gmail.com or open an issue or for any inquire.
-
-📌 Status
-Project is currently in active development.
-
-yaml
-Copy
-Edit
+```
 
 ---
 
+## 🧽 Folder Structure
+
+```bash
+NovaProperties/
+├── public/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── hooks/
+│   └── main.tsx
+├── .env
+└── vite.config.ts
 ```
+
+---
+
+## 🔧 Scripts
+
+| Script            | Description              |
+| ----------------- | ------------------------ |
+| `npm run dev`     | Start dev server         |
+| `npm run build`   | Build production files   |
+| `npm run preview` | Preview production build |
+
+---
+
+## 📝 License & Attribution
+
+* **shadcn/ui** is MIT-licensed and requires attribution – [shadcn licensing info](https://ui.shadcn.com/docs/installation/license).
+* All other dependencies follow their respective licenses.
+
+---
+
+## 🤝 Contributing
+
+Pull requests are welcome!
+For significant changes, please open an issue first to discuss the idea.
+
+---
+
+## 📬 Contact
+
+Feel free to reach out:
+
+* 📧 [abduseid14789@gmail.com](mailto:abduseid14789@gmail.com)
+* Or open an issue on this repo.
+
+---
+
+## 📌 Project Status
+
+This project is currently **in active development**.
+
+Stay tuned for more features and improvements!
+
+---

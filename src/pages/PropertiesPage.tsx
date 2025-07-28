@@ -86,6 +86,12 @@ const PropertiesPage = () => {
   useEffect(() => {
     if (isInitialMount.current) return;
     setPriceRange("any");
+    setBedrooms("any");
+    setSearchTerm("");
+    setSortOption("");
+    setCurrentPage(1);
+
+    navigate(`${location.pathname}?type=${activeFilter}`, { replace: true });
   }, [activeFilter]);
 
   const handleProperties = async (page = 1, limit = 12) => {
@@ -165,12 +171,12 @@ const PropertiesPage = () => {
 
     // Bedrooms filter
     if (bedrooms !== "any") {
-      if (bedrooms === "4+") {
-        result = result.filter((property) => property.bedrooms >= 4);
-      } else {
-        const numBedrooms = parseInt(bedrooms);
-        result = result.filter((property) => property.bedrooms === numBedrooms);
-      }
+      result = result.filter((property) => {
+        if (property.propertyType?.toLowerCase() === "office") return true;
+
+        const num = bedrooms === "4+" ? 4 : parseInt(bedrooms);
+        return property.bedrooms >= num;
+      });
     }
 
     // Sorting

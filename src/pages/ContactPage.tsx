@@ -5,70 +5,7 @@ import { Phone, Mail, Clock, MapPin } from "lucide-react";
 const ContactPage = () => {
   return (
     <>
-      <head>
-        <title>Contact Nova Properties | Real Estate Experts</title>
-        <meta
-          name="description"
-          content="Reach Nova Properties for premium real estate services. Contact our team via phone, email, or visit our office for personalized assistance."
-        />
-        <meta
-          name="keywords"
-          content="real estate contact, property agents, housing consultation, nova properties contact"
-        />
-        <link rel="canonical" href="https://www.novaproperties.com/contact" />
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "RealEstateAgent",
-            name: "Nova Properties",
-            image: "/logo.png",
-            "@id": "",
-            url: "https://www.novaproperties.com",
-            telephone: "+1-800-123-4567",
-            address: {
-              "@type": "PostalAddress",
-              streetAddress: "123 Main Street",
-              addressLocality: "New York",
-              addressRegion: "NY",
-              postalCode: "10001",
-              addressCountry: "US",
-            },
-            geo: {
-              "@type": "GeoCoordinates",
-              latitude: 40.7128,
-              longitude: -74.006,
-            },
-            openingHoursSpecification: [
-              {
-                "@type": "OpeningHoursSpecification",
-                dayOfWeek: [
-                  "Monday",
-                  "Tuesday",
-                  "Wednesday",
-                  "Thursday",
-                  "Friday",
-                ],
-                opens: "09:00",
-                closes: "18:00",
-              },
-              {
-                "@type": "OpeningHoursSpecification",
-                dayOfWeek: "Saturday",
-                opens: "10:00",
-                closes: "16:00",
-              },
-            ],
-            sameAs: [
-              "https://www.facebook.com/novaproperties",
-              "https://www.instagram.com/novaproperties",
-              "https://www.linkedin.com/company/novaproperties",
-            ],
-          })}
-        </script>
-      </head>
-
-      <main className="min-h-screen bg-gradient-to-b from-background to-accent/10">
-        {/* Hero Section */}
+      <section className="min-h-screen bg-gradient-to-b from-background to-accent/10">
         <section className="bg-primary text-primary-foreground py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-fade-in">
@@ -273,7 +210,7 @@ const ContactPage = () => {
             </div>
           </div>
         </section>
-      </main>
+      </section>
     </>
   );
 };

@@ -1,8 +1,0 @@
-.env
-node_modules
-dist
-dist-ssr
-*.local
-userSeed.js
-seed.js
-server.js
