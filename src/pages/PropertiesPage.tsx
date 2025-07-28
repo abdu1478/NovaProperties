@@ -1,19 +1,41 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import ResultsHeader from "@/components/Shared/ResultsHeader";
 import PropertyCard from "@/components/Shared/PropertyCard";
-import { fetchFeaturedProperties, fetchIndividualProperty } from "@/utils/api";
-import type { Property } from "@/utils/api";
+import EmptyState from "@/components/Shared/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
+import FilterControls from "@/components/Shared/FilterControls";
+import Pagination from "@/components/Shared/Pagination";
+
+import { fetchProperties } from "@/utils/api";
+import type { Property } from "@/utils/api";
+
+const LoadingSkeleton = () => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {[...Array(6)].map((_, i) => (
+      <Skeleton key={i} className="h-80 rounded-xl" />
+    ))}
+  </div>
+);
+
+interface ErrorStateProps {
+  error: string;
+  onRetry: () => void;
+}
+
+const ErrorState = ({ error, onRetry }: ErrorStateProps) => (
+  <div className="text-center py-12">
+    <p className="text-destructive">{error}</p>
+    <Button
+      className="mt-4 bg-foreground text-background/80 cursor-pointer"
+      onClick={onRetry}
+    >
+      Retry
+    </Button>
+  </div>
+);
 
 const PropertiesPage = () => {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -21,8 +43,11 @@ const PropertiesPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 6;
   const navigate = useNavigate();
   const location = useLocation();
+  const isInitialMount = useRef(true);
 
   // Parse price to number for filtering
   const parsePrice = (price: number | string): number => {
@@ -48,27 +73,36 @@ const PropertiesPage = () => {
   );
   const [sortOption, setSortOption] = useState(searchParams.get("sort") || "");
 
-  console.log(isSyncing);
+  // Reset to first page when filters change
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    setCurrentPage(1);
+  }, [activeFilter, searchTerm, priceRange, bedrooms, sortOption]);
 
-  const fetchProperties = async () => {
+  // Reset priceRange when switching between buy/rent
+  useEffect(() => {
+    if (isInitialMount.current) return;
+    setPriceRange("any");
+  }, [activeFilter]);
+
+  const handleProperties = async (page = 1, limit = 12) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchFeaturedProperties();
+      const { data } = await fetchProperties(page, limit);
       setProperties(data);
     } catch (err) {
       let errorMessage = "Failed to load properties";
-
       if (err instanceof Error) {
-        if (err.message.includes("network")) {
-          errorMessage = "Network error. Please check your connection.";
-        } else if (err.message.includes("HTTP error")) {
-          errorMessage = "Server error. Please try again later.";
-        } else {
-          errorMessage = err.message;
-        }
+        errorMessage = err.message.toLowerCase().includes("network")
+          ? "Network error. Please check your connection."
+          : err.message.toLowerCase().includes("server")
+          ? "Server error. Please try again later."
+          : err.message;
       }
-
       setError(errorMessage);
       console.error("Fetch error:", err);
     } finally {
@@ -77,20 +111,7 @@ const PropertiesPage = () => {
   };
 
   useEffect(() => {
-    fetchProperties();
-
-    const individual = async () => {
-      if (!properties) {
-        return null;
-      }
-      try {
-        const data = await fetchIndividualProperty(properties[0]?._id);
-        console.log("Individual Property Data:", data);
-      } catch (err) {
-        return;
-      }
-    };
-    individual();
+    handleProperties();
   }, []);
 
   // Sync URL → State
@@ -108,55 +129,18 @@ const PropertiesPage = () => {
     setSortOption(sortParam);
   }, [searchParams]);
 
-  // Sync State → URL
-  useEffect(() => {
-    setIsSyncing(true);
-
-    const params = new URLSearchParams();
-    if (activeFilter) params.set("type", activeFilter);
-    if (searchTerm) params.set("search", searchTerm);
-    if (priceRange !== "any") params.set("price", priceRange);
-    if (bedrooms !== "any") params.set("bedrooms", bedrooms);
-    if (sortOption) params.set("sort", sortOption);
-
-    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
-
-    // Reset sync flag after update
-    const timer = setTimeout(() => setIsSyncing(false), 0);
-    return () => clearTimeout(timer);
-  }, [
-    activeFilter,
-    searchTerm,
-    priceRange,
-    bedrooms,
-    sortOption,
-    navigate,
-    location.pathname,
-  ]);
-
-  // Reset all filters
-  const resetFilters = () => {
-    navigate("/properties/listings", { replace: true });
-
-    setActiveFilter("buy");
-    setSearchTerm("");
-    setPriceRange("any");
-    setBedrooms("any");
-    setSortOption("");
-  };
-
   // Filter and sort properties
   const filteredProperties = useMemo(() => {
     let result = [...properties];
 
-    // Type filter - using category field
+    // Type filter
     if (activeFilter === "buy") {
       result = result.filter((p) => p.category === "Buy");
-    } else if (activeFilter === "rent") {
+    } else {
       result = result.filter((p) => p.category === "Rent");
     }
 
-    // Search term filter - search in location, address, and description
+    // Search term filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(
@@ -173,11 +157,9 @@ const PropertiesPage = () => {
       const [min, max] = priceRange.split("-").map(Number);
       result = result.filter((property) => {
         const priceValue = parsePrice(property.price);
-        if (max === 0) {
-          return priceValue >= min;
-        } else {
-          return priceValue >= min && priceValue <= max;
-        }
+        return max === 0
+          ? priceValue >= min
+          : priceValue >= min && priceValue <= max;
       });
     }
 
@@ -203,6 +185,54 @@ const PropertiesPage = () => {
     return result;
   }, [properties, activeFilter, searchTerm, priceRange, bedrooms, sortOption]);
 
+  // Pagination logic
+  const paginatedProperties = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredProperties.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredProperties, currentPage]);
+
+  const totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Sync State → URL
+  useEffect(() => {
+    setIsSyncing(true);
+
+    const params = new URLSearchParams();
+    if (activeFilter) params.set("type", activeFilter);
+    if (searchTerm) params.set("search", searchTerm);
+    if (priceRange !== "any") params.set("price", priceRange);
+    if (bedrooms !== "any") params.set("bedrooms", bedrooms);
+    if (sortOption) params.set("sort", sortOption);
+
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+
+    const timer = setTimeout(() => setIsSyncing(false), 0);
+    return () => clearTimeout(timer);
+  }, [
+    activeFilter,
+    searchTerm,
+    priceRange,
+    bedrooms,
+    sortOption,
+    navigate,
+    location.pathname,
+  ]);
+
+  // Reset all filters
+  const resetFilters = () => {
+    navigate("/properties/listings", { replace: true });
+    setActiveFilter("buy");
+    setSearchTerm("");
+    setPriceRange("any");
+    setBedrooms("any");
+    setSortOption("");
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-12 text-center">
@@ -214,183 +244,51 @@ const PropertiesPage = () => {
         </p>
       </div>
 
-      {/* Unified Filter Controls */}
-      <div className="bg-card rounded-xl shadow-sm p-6 mb-8 border border-border">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
-              Property Type
-            </label>
-            <Tabs
-              value={activeFilter}
-              onValueChange={(value) =>
-                setActiveFilter(value as "buy" | "rent")
-              }
-              className="w-full"
-            >
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="buy">Buy</TabsTrigger>
-                <TabsTrigger value="rent">Rent</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
+      <FilterControls
+        activeFilter={activeFilter}
+        onFilterChange={setActiveFilter}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        priceRange={priceRange}
+        onPriceRangeChange={setPriceRange}
+        bedrooms={bedrooms}
+        onBedroomsChange={setBedrooms}
+        onReset={resetFilters}
+        propertyCount={filteredProperties.length}
+      />
 
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
-              Search Location
-            </label>
-            <Input
-              placeholder="City, Neighborhood, or ZIP"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+      <ResultsHeader
+        activeFilter={activeFilter}
+        sortOption={sortOption}
+        onSortChange={setSortOption}
+      />
 
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
-              Price Range
-            </label>
-            {activeFilter === "buy" && (
-              <Select value={priceRange} onValueChange={setPriceRange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any Price</SelectItem>
-                  <SelectItem value="0-250000">Under $250,000</SelectItem>
-                  <SelectItem value="250000-500000">$250K - $500K</SelectItem>
-                  <SelectItem value="500000-1000000">$500K - $1M</SelectItem>
-                  <SelectItem value="1000000-0">$1M+</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-            {activeFilter === "rent" && (
-              <Select value={priceRange} onValueChange={setPriceRange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any Price</SelectItem>
-                  <SelectItem value="0-250000">Under $10,000</SelectItem>
-                  <SelectItem value="250000-500000">$25K - $50K</SelectItem>
-                  <SelectItem value="500000-1000000">$50K - $100K</SelectItem>
-                  <SelectItem value="1000000-0">$100K+</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
-              Bedrooms
-            </label>
-            <Select value={bedrooms} onValueChange={setBedrooms}>
-              <SelectTrigger>
-                <SelectValue placeholder="Any bedrooms" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="any">Any</SelectItem>
-                <SelectItem value="1">1 Bedroom</SelectItem>
-                <SelectItem value="2">2 Bedrooms</SelectItem>
-                <SelectItem value="3">3 Bedrooms</SelectItem>
-                <SelectItem value="4+">4+ Bedrooms</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="mt-4 flex justify-between items-center">
-          <div className="text-sm text-muted-foreground">
-            {filteredProperties.length} properties found
-          </div>
-          <Button variant="ghost" size="sm" onClick={resetFilters}>
-            Clear Filters
-          </Button>
-        </div>
-      </div>
-
-      {/* Results Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <h2 className="text-xl font-semibold text-foreground mb-4 md:mb-0">
-          {activeFilter === "buy"
-            ? "Properties For Sale"
-            : "Properties For Rent"}
-        </h2>
-
-        <div className="flex gap-2">
-          <Select value={sortOption} onValueChange={setSortOption}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="recommended">Recommended</SelectItem>
-              <SelectItem value="price-asc">Price: Low to High</SelectItem>
-              <SelectItem value="price-desc">Price: High to Low</SelectItem>
-              <SelectItem value="newest">Newest First</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Property Results */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="h-80 rounded-xl" />
-          ))}
-        </div>
+        <LoadingSkeleton />
       ) : error ? (
-        <div className="text-center py-12">
-          <p className="text-destructive">{error}</p>
-          <Button
-            className="mt-4"
-            onClick={() => {
-              setError(null);
-              fetchProperties();
-            }}
-          >
-            Retry
-          </Button>
-        </div>
+        <ErrorState
+          error={error}
+          onRetry={() => {
+            setError(null);
+            handleProperties();
+          }}
+        />
       ) : filteredProperties.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg">
-          <div className="inline-block bg-gray-100 dark:bg-gray-800 rounded-full p-4 mb-4">
-            <div className="text-4xl">🏡</div>
-          </div>
-          <h3 className="text-xl font-medium text-foreground mb-2">
-            No properties match your criteria
-          </h3>
-          <p className="text-muted-foreground mb-4">
-            Try adjusting your filters or search term
-          </p>
-          <Button variant="secondary" onClick={resetFilters}>
-            Reset All Filters
-          </Button>
-        </div>
+        <EmptyState onReset={resetFilters} />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProperties.map((property) => (
-            <PropertyCard key={property._id} property={property} />
-          ))}
-        </div>
-      )}
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {paginatedProperties.map((property) => (
+              <PropertyCard key={property._id} property={property} />
+            ))}
+          </div>
 
-      {/* Pagination would go here */}
-      {filteredProperties.length > 0 && (
-        <div className="mt-12 flex justify-center">
-          <Button variant="outline" className="mx-1">
-            1
-          </Button>
-          <Button variant="ghost" className="mx-1">
-            2
-          </Button>
-          <Button variant="ghost" className="mx-1">
-            3
-          </Button>
-          <Button variant="ghost" className="mx-1">
-            Next →
-          </Button>
-        </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={goToPage}
+          />
+        </>
       )}
     </div>
   );

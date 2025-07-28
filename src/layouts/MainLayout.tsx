@@ -5,7 +5,7 @@ import { Outlet } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
-import { Analytics } from "@vercel/analytics/react";
+// import { Analytics } from "@vercel/analytics/react";
 type MainLayoutProps = {
   children?: ReactNode;
 };
@@ -21,7 +21,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         <Toaster position="bottom-right" richColors />
         {children || <Outlet />}
       </main>
-      <Analytics />
       {!hideLayout && <Footer />}
     </>
   );

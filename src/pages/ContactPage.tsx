@@ -1,4 +1,5 @@
 import ContactSection from "@/components/Shared/ContactUs";
+import { Button } from "@/components/ui/button";
 import { Phone, Mail, Clock, MapPin } from "lucide-react";
 
 const ContactPage = () => {
@@ -201,16 +202,19 @@ const ContactPage = () => {
                   </div>
                 </div>
 
-                <div className="mt-12 rounded-xl overflow-hidden bg-muted border border-border shadow-lg">
+                <div
+                  id="map-container"
+                  className="mt-12 rounded-xl overflow-hidden bg-muted border border-border shadow-lg"
+                >
                   <div className="bg-gray-100 border-2 border-dashed rounded-xl w-full h-64 flex flex-col items-center justify-center text-muted-foreground">
                     <MapPin className="w-12 h-12 mb-4" />
                     <p>Interactive Map Location</p>
                     <p className="text-sm mt-2">
                       123 Main Street, New York, NY
                     </p>
-                    <button className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+                    <Button className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
                       Get Directions
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>

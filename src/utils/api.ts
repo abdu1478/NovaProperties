@@ -76,6 +76,35 @@ export const fetchFeaturedProperties = async (): Promise<Property[]> => {
   }
 };
 
+export const fetchProperties = async (
+  page = 1,
+  limit = 12
+): Promise<{ data: Property[]; total: number }> => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/properties`, {
+      params: { page, limit },
+    });
+    return response.data;
+  } catch (err) {
+    let errorMessage = "Failed to fetch properties. Please try again later.";
+
+    if (axios.isAxiosError(err)) {
+      if (err.response) {
+        errorMessage =
+          err.response.data?.message ||
+          `Server error: ${err.response.status} ${err.response.statusText}`;
+      } else if (err.request) {
+        errorMessage = "Network error. Please check your connection.";
+      }
+    } else if (err instanceof Error) {
+      errorMessage = err.message;
+    }
+
+    throw new Error(errorMessage);
+  }
+};
+
+
 export const fetchAgents = async (): Promise<Agent[]> => {
   const response = await axios.get(`${API_BASE_URL}/agents`);
   return response.data;

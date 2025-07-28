@@ -45,17 +45,6 @@ const router = createBrowserRouter([
           description:
             "Explore a wide range of properties available for sale and rent.",
         },
-        children: [
-          {
-            path: "listings",
-            element: withSuspense(<ListingsPage />),
-            handle: {
-              title: "All Listings | Nova Properties",
-              description:
-                "View all available property listings, both for sale and rent.",
-            },
-          },
-        ],
       },
       {
         path: ROUTES.PROPERTY_DETAIL,
