@@ -201,7 +201,7 @@ export const withAuth = <P extends object>(
   Component: React.ComponentType<P>
 ) => {
   return function WithAuthComponent(props: P) {
-    const { isAuthenticated, isLoading, redirectTo, setRedirectTo } = useAuth();
+    const { isAuthenticated, isLoading, setRedirectTo } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
 

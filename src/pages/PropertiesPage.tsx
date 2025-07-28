@@ -42,7 +42,7 @@ const PropertiesPage = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [, setIsSyncing] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 6;
   const navigate = useNavigate();
