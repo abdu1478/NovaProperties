@@ -133,7 +133,7 @@ const PropertyDetail: React.FC = () => {
             <Link to={from}>
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                {getBackButtonText()}
+                <span className="hidden sm:inline">{getBackButtonText()}</span>
               </Button>
             </Link>
             <div className="flex items-center gap-2">
@@ -157,12 +157,12 @@ const PropertyDetail: React.FC = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-6 sm:py-8">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left Side - Image Gallery */}
           <section className="space-y-4" aria-label="Property images">
             {/* Main Image */}
-            <div className="aspect-[4/3] overflow-hidden rounded-lg bg-muted">
+            <div className="aspect-[4/3] min-h-[200px] overflow-hidden rounded-lg bg-muted">
               {property.images.length > 0 ? (
                 <img
                   src={property.images[selectedImage] || property.images[0]}
@@ -244,7 +244,7 @@ const PropertyDetail: React.FC = () => {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-3xl font-bold text-primary">
+                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-primary">
                     {formatPrice(property.price)}
                   </p>
                   {property.category === "Rent" && (
@@ -256,7 +256,7 @@ const PropertyDetail: React.FC = () => {
             {/* Property Stats */}
             <Card>
               <CardContent className="p-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
                   {property.type !== "Commercial Office" ? (
                     <>
                       <div className="text-center space-y-1">

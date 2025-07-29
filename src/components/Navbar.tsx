@@ -165,7 +165,7 @@ function Navbar() {
         "lg:py-4"
       )}
     >
-      <div className="mx-auto px-3 sm:px-4 lg:px-6 max-w-7xl">
+      <div className="mx-auto px-2 sm:px-4 lg:px-6 max-w-7xl">
         {/* Mobile Search */}
         <AnimatePresence>
           {showMobileSearch && (
@@ -195,7 +195,7 @@ function Navbar() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search properties..."
-                  className="bg-transparent border-0 focus:outline-none w-full text-sm placeholder:text-muted-foreground"
+                  className="w-full max-w-[calc(100vw-120px)] text-sm placeholder:text-muted-foreground truncate"
                 />
               </form>
             </motion.div>
@@ -221,7 +221,9 @@ function Navbar() {
                 className={cn(
                   "rounded-full ease-in-out",
                   "group-hover:scale-105",
-                  scrolled ? "w-8 h-8" : "w-10 h-10",
+                  scrolled
+                    ? "w-6 h-6 sm:w-8 sm:h-8"
+                    : "w-8 h-8 sm:w-10 sm:h-10",
                   "sm:w-10 sm:h-10 lg:w-12 lg:h-12"
                 )}
                 loading="lazy"
@@ -336,7 +338,7 @@ function Navbar() {
               ref={mobileMenuButtonRef}
               variant="ghost"
               size="icon"
-              className="lg:hidden h-8 w-8 sm:h-9 sm:w-9"
+              className="lg:hidden h-7 w-7 sm:h-9 sm:w-9"
               onClick={() => setMobileOpen(!mobileOpen)}
             >
               <motion.div
