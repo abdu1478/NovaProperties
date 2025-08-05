@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
 import {
   MapPin,
@@ -17,29 +17,34 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import {
-  fetchAgentById,
-  fetchIndividualProperty,
-  type Agent,
-  type Property,
-} from "@/utils/api";
+
 import { formatPrice } from "@/utils/formatPrice";
 import { useFavorites } from "@/contexts/FavoritesContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import AgentContactForm from "@/components/AgentContact";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePropertyById } from "@/hooks/usePropertyById";
+import { useAgentById } from "@/hooks/useAgentById";
 
 const PropertyDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [property, setProperty] = useState<Property | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedImage, setSelectedImage] = useState(0);
-  const { user } = useAuth();
   const location = useLocation();
   const from = location.state?.from || "/properties/listings";
+  const { user } = useAuth();
   const { isFavorite, toggleFavorite } = useFavorites();
-  const [agent, setAgent] = useState<Agent | null>(null);
+
+  // Fetch property data using React Query
+  const {
+    data: property,
+    error: propertyError,
+    isLoading: isPropertyLoading,
+  } = usePropertyById(id!);
+
+  // Fetch agent data using React Query
+  const agentId = property?.agentId?.toString();
+  const { data: agent, isLoading: isAgentLoading } = useAgentById(
+    agentId ?? ""
+  );
 
   const getBackButtonText = () => {
     switch (from) {
@@ -54,42 +59,16 @@ const PropertyDetail: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    const loadProperty = async () => {
-      if (!id) {
-        setError("Property ID not found");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const propertyData = await fetchIndividualProperty(id);
-        setProperty(propertyData);
-        const agentId = propertyData?.agentId?.toString?.();
-        if (agentId) {
-          const agentData = await fetchAgentById(agentId);
-          setAgent(agentData);
-          console.log(agentData);
-        }
-      } catch (err) {
-        setError("Failed to load property details");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProperty();
-  }, [id]);
-
-  const handleFavorite = async (e: React.MouseEvent) => {
+  const handleFavorite = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!property) return;
     toggleFavorite(property._id);
   };
 
   const handleShare = () => {
-    if (navigator.share && property) {
+    if (!property) return;
+
+    if (navigator.share) {
       navigator.share({
         title: `${property.type} in ${property.location}`,
         url: window.location.href,
@@ -100,7 +79,7 @@ const PropertyDetail: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (isPropertyLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -111,11 +90,13 @@ const PropertyDetail: React.FC = () => {
     );
   }
 
-  if (error || !property) {
+  if (propertyError || !property) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
-          <p className="text-destructive">{error || "Property not found"}</p>
+          <p className="text-destructive">
+            {propertyError?.message || "Property not found"}
+          </p>
           <Button variant="outline" onClick={() => window.location.reload()}>
             Retry
           </Button>
@@ -127,11 +108,11 @@ const PropertyDetail: React.FC = () => {
   return (
     <main className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60top-0 z-50">
+      <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to={from}>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" className="cursor-pointer" size="sm">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 <span className="hidden sm:inline">{getBackButtonText()}</span>
               </Button>
@@ -141,7 +122,12 @@ const PropertyDetail: React.FC = () => {
                 <Share2 className="w-4 h-4 mr-2" />
                 Share
               </Button>
-              <Button variant="outline" size="sm" onClick={handleFavorite}>
+              <Button
+                variant="outline"
+                size="sm"
+                aria-label="Add to favorites"
+                onClick={handleFavorite}
+              >
                 <Heart
                   fill={isFavorite(property._id) ? "var(--chart-5)" : "none"}
                   color={
@@ -165,24 +151,17 @@ const PropertyDetail: React.FC = () => {
             <div className="aspect-[4/3] min-h-[200px] overflow-hidden rounded-lg bg-muted">
               {property.images.length > 0 ? (
                 <img
-                  src={property.images[selectedImage] || property.images[0]}
+                  src={property.images[0]}
                   alt={`${property.type} in ${property.location}`}
-                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                  onError={(e) => {
-                    e.currentTarget.classList.add("opacity-0");
-                    e.currentTarget.nextElementSibling?.classList.remove(
-                      "hidden"
-                    );
-                  }}
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                  decoding="async"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                   <span>No image available</span>
                 </div>
               )}
-              <div className="hidden w-full h-full items-center justify-center text-muted-foreground bg-muted">
-                <span>Image not available</span>
-              </div>
             </div>
 
             {/* Thumbnail Gallery */}
@@ -191,12 +170,7 @@ const PropertyDetail: React.FC = () => {
                 {property.images.slice(0, 4).map((image, index) => (
                   <button
                     key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={`aspect-square overflow-hidden rounded-md transition-all duration-200 ${
-                      selectedImage === index
-                        ? "ring-2 ring-primary ring-offset-2"
-                        : "hover:opacity-80"
-                    }`}
+                    className={`aspect-square overflow-hidden rounded-md transition-all duration-200 hover:opacity-80`}
                     aria-label={`View image ${index + 1}`}
                   >
                     <img
@@ -205,22 +179,13 @@ const PropertyDetail: React.FC = () => {
                         index + 1
                       }`}
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.classList.add("opacity-0");
-                        e.currentTarget.nextElementSibling?.classList.remove(
-                          "hidden"
-                        );
-                      }}
+                      loading="lazy"
+                      decoding="async"
                     />
-                    <div className="hidden w-full h-full items-center justify-center text-xs bg-muted text-muted-foreground">
-                      Image
-                    </div>
                   </button>
                 ))}
               </div>
             )}
-
-            {/* Virtual tour removed since it's not in the Property interface */}
           </section>
 
           {/* Right Side - Property Details */}
@@ -335,15 +300,13 @@ const PropertyDetail: React.FC = () => {
             )}
             <Separator />
             <div className="w-full">
-              {user && agent ? (
+              {!isAgentLoading && agent && (
                 <AgentContactForm
                   agent={agent}
-                  userEmail={user.email}
-                  userName={user.name}
+                  userEmail={user?.email || ""}
+                  userName={user?.name || ""}
                 />
-              ) : agent ? (
-                <AgentContactForm agent={agent} userEmail="" userName="" />
-              ) : null}
+              )}
             </div>
           </section>
         </div>

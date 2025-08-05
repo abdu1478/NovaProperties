@@ -1,69 +1,46 @@
-import { useEffect, useState } from "react";
-import { Search, UserCheck } from "lucide-react";
-import {
-  fetchAgents,
-  fetchFeaturedProperties,
-  fetchTestimonials,
-} from "@/utils/api";
-import PropertyCard from "@/components/Shared/PropertyCard";
-import type { Property, Agent, Testimonial } from "@/utils/api";
-import AboutUsSection from "@/components/About/AboutUsSection";
 import { Link } from "react-router-dom";
-import AgentCard from "@/components/Shared/AgentCard";
-import ContactSection from "@/components/Shared/ContactUs";
-import TestimonialsSection from "@/components/Shared/TestimonialCard";
+import { Search, UserCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
+
 import { ROUTES } from "@/constants/routes";
+import { useFeaturedProperties } from "@/hooks/useFeaturedProperties";
+import { useAgents } from "@/hooks/useAgents";
+import { useTestimonials } from "@/hooks/useTestimonials";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import React from "react";
+const heroImage =
+  "https://ik.imagekit.io/novaProperties/heroBack.webp?tr=w-1600,q-75&updatedAt=1754053420576";
+
+// Lazy loading components
+const ContactSection = React.lazy(
+  () => import("@/components/Shared/ContactUs")
+);
+const TestimonialsSection = React.lazy(
+  () => import("@/components/Shared/TestimonialCard")
+);
+const AboutUsSection = React.lazy(
+  () => import("@/components/About/AboutUsSection")
+);
+const PropertyCard = React.lazy(
+  () => import("@/components/Shared/PropertyCard")
+);
+const AgentCard = React.lazy(() => import("@/components/Shared/AgentCard"));
 
 function HomePage() {
-  const [property, setProperty] = useState<Property[]>([]);
-  const [agents, setAgents] = useState<Agent[]>([]);
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-
-  // Fetch properties, agents, and testimonials on component mount
-  useEffect(() => {
-    const getProperties = async () => {
-      try {
-        const data = await fetchFeaturedProperties();
-        setProperty(data);
-        console.log(data);
-      } catch (error) {
-        console.error("Error fetching properties:", error);
-      }
-    };
-    getProperties();
-    const getAgents = async () => {
-      try {
-        const data = await fetchAgents();
-        setAgents(Array.isArray(data) ? data : []);
-        console.log("Agents data:", data);
-      } catch (error) {
-        console.error("Error fetching agents:", error);
-        setAgents([]); // Set to empty array on error
-      }
-    };
-    getAgents();
-
-    const getTestimonials = async () => {
-      try {
-        const data = await fetchTestimonials();
-        setTestimonials(data);
-        console.log("Testimonials data:", data);
-      } catch (error) {
-        console.error("Error fetching testimonials:", error);
-      }
-    };
-    getTestimonials();
-  }, []);
+  const { data: featuredProperties = [], isLoading: isPropertiesLoading } =
+    useFeaturedProperties();
+  const { data: agents = [], isLoading: isAgentsLoading } = useAgents();
+  const { data: testimonials = [], isLoading: isTestimonialsLoading } =
+    useTestimonials();
 
   const container: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.3,
-        delayChildren: 0.5,
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
       },
     },
   };
@@ -74,55 +51,66 @@ function HomePage() {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.9,
-        ease: [0.3, 1, 0.5, 1],
+        duration: 0.2,
+        ease: [0.1, 0.8, 0.2, 0.7],
       },
     },
   };
 
-  const scaleIn: Variants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    show: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.9,
-        ease: "backOut",
-      },
-    },
-  };
+  const isLoading =
+    isPropertiesLoading || isAgentsLoading || isTestimonialsLoading;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         {/* Background Image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
-          style={{
-            backgroundImage: "url('heroBack.png')",
-          }}
-          aria-label="Luxury home exterior with modern architecture"
-        />
+        <div className="absolute inset-0 z-0">
+          <img
+            src={heroImage}
+            alt="Hero Background"
+            className="w-full h-full object-cover"
+            decoding="async"
+            fetchPriority="high"
+            width={1920}
+            height={1080}
+            // srcSet={`
+            //   ${heroImage}?tr=w-640,q-70 640w,
+            //   ${heroImage}?tr=w-960,q-70 960w,
+            //   ${heroImage}?tr=w-1920,q-80 1920w
+            // `}
+            sizes="(max-width: 640px) 640px, (max-width: 960px) 960px, 1920px"
+          />
+        </div>
 
-        <div className="absolute inset-0 bg-gradient-to-br from-background/15 to-secondary/15 z-1" />
+        {/* Trust-focused teal overlay */}
+        <div className="absolute inset-0 z-10 rounded-xl backdrop-blur-sm pointer-events-none" />
 
-        {/* Texts */}
+        {/* Content */}
         <motion.div
           className="relative z-10 text-center max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
           variants={container}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: "-100px" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
         >
           <motion.h1
-            className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6"
+            className="text-4xl sm:text-5xl md:text-6xl font-bold text-background mb-6"
             variants={fadeUp}
           >
-            Find Your <span className="text-chart-3">Dream Home</span> Today
+            Find Your{" "}
+            <span className="text-chart-3">Dream Home</span> Today
           </motion.h1>
 
           <motion.p
-            className="text-xl md:text-2xl text-white/90 mb-8 max-w-2xl mx-auto"
+            className="text-xl md:text-2xl text-[oklch(0.95_0.002_285)] mb-8 max-w-2xl mx-auto"
             variants={fadeUp}
           >
             Discover exceptional properties with our expert team. Your perfect
@@ -131,35 +119,29 @@ function HomePage() {
 
           <motion.div
             className="flex flex-col sm:flex-row gap-4 justify-center"
-            variants={scaleIn}
+            variants={fadeUp}
           >
-            <motion.div
-              className="bg-primary text-primary-foreground rounded-lg px-6 py-2 font-bold flex items-center justify-center transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <div className="bg-primary text-sidebar rounded-lg px-6 py-2 font-bold flex items-center justify-center transition-colors">
               <Link
                 to={ROUTES.PROPERTIES}
                 className="flex items-center cursor-pointer"
+                aria-label="Browse property listings"
               >
                 <Search className="w-5 h-5 mr-2" />
                 Browse Listings
               </Link>
-            </motion.div>
+            </div>
 
-            <motion.div
-              className="bg-chart-3 hover:bg-amber-600 text-secondary-foreground rounded-lg px-6 py-2 font-bold flex items-center justify-center transition-colors cursor-pointer"
-              whileHover={{
-                scale: 1.05,
-                backgroundColor: "#f59e0b",
-              }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Link to={ROUTES.AGENTS} className="flex items-center">
+            <div className="bg-chart-3 text-sidebar rounded-lg px-6 py-2 font-bold flex items-center justify-center transition-colors cursor-pointer">
+              <Link
+                to={ROUTES.AGENTS}
+                className="flex items-center"
+                aria-label="Contact a real estate agent"
+              >
                 <UserCheck className="w-5 h-5 mr-2" />
                 Contact an Agent
               </Link>
-            </motion.div>
+            </div>
           </motion.div>
         </motion.div>
       </section>
@@ -169,26 +151,37 @@ function HomePage() {
 
       {/* Featured Listings */}
       <section id="listings" className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-2">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-[oklch(0.42_0.08_225)] mb-4">
               Featured Listings
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Discover our handpicked selection of premium properties in the
-              most desirable locations.
+            <p className="text-lg text-[oklch(0.55_0.015_285)] max-w-2xl mx-auto">
+              Discover our handpicked selection of premium properties
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {property.map((prop, index) => (
-              <PropertyCard key={index} property={prop} />
+          <div className="relative overflow-hidden flex lg:gap-4 md:gap-2">
+            {featuredProperties.map((property, index) => (
+              <motion.div
+                key={index}
+                className="flex-shrink-0 w-full md:w-1/3 lg:px-2 lg:w-1/2"
+                variants={fadeUp}
+                initial="hidden"
+                animate="show"
+              >
+                <React.Suspense fallback={<LoadingSpinner />}>
+                  <PropertyCard property={property} />
+                </React.Suspense>
+              </motion.div>
             ))}
           </div>
-          <div className="text-center mt-12">
+
+          <div className="mt-12 text-center">
             <Link
-              to={`${ROUTES.PROPERTIES}`}
-              className="btn btn--view bg-primary text-primary-foreground rounded-lg px-8 py-3 font-bold hover:bg-primary/95 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              to={ROUTES.PROPERTIES}
+              className="inline-block bg-primary text-primary-foreground rounded-lg px-8 py-3 font-bold hover:bg-[oklch(0.38_0.08_225)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.42_0.08_225)] focus-visible:ring-offset-2"
+              aria-label="View all property listings"
             >
               View All Listings
             </Link>
@@ -197,19 +190,23 @@ function HomePage() {
       </section>
 
       {/* Top Agents */}
-      <section id="agents" className="py-16 bg-background">
+      <section
+        id="agents"
+        className="py-16"
+        style={{ background: "oklch(0.98_0.002_285)" }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-[oklch(0.42_0.08_225)] mb-4">
               Meet Our Top Agents
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg text-[oklch(0.55_0.015_285)] max-w-2xl mx-auto">
               Our experienced professionals are here to guide you through every
               step of your real estate journey.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto ">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {agents.map((agent, index) => (
               <AgentCard key={index} agents={agent} />
             ))}
@@ -220,6 +217,7 @@ function HomePage() {
       {/* Testimonials */}
       <TestimonialsSection testimonials={testimonials} />
 
+      {/* Contact Section */}
       <ContactSection />
     </div>
   );

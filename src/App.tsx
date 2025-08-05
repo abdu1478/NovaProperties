@@ -1,26 +1,25 @@
-import { HelmetProvider } from "react-helmet-async";
 import { ThemeProvider } from "./components/theme-provider";
 import { RouterProvider } from "react-router-dom";
 import router from "./routes/router";
 import { AuthProvider } from "./contexts/AuthContext";
 import { FavoritesProvider } from "./contexts/FavoritesContext";
-import { GoogleOAuthProvider } from "@react-oauth/google";
-
-const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+import { ErrorBoundary } from "react-error-boundary";
+import ErrorFallback from "@/components/Shared/ErrorFallback";
+import { CounterProvider } from "@/contexts/CounterContext";
 
 function App() {
   return (
-    <HelmetProvider>
-      <ThemeProvider>
-        <GoogleOAuthProvider clientId={clientId}>
-          <AuthProvider>
-            <FavoritesProvider>
+    <ThemeProvider>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <AuthProvider>
+          <FavoritesProvider>
+            <CounterProvider>
               <RouterProvider router={router} />
-            </FavoritesProvider>
-          </AuthProvider>
-        </GoogleOAuthProvider>
-      </ThemeProvider>
-    </HelmetProvider>
+            </CounterProvider>
+          </FavoritesProvider>
+        </AuthProvider>
+      </ErrorBoundary>
+    </ThemeProvider>
   );
 }
 

@@ -25,22 +25,23 @@ const Footer = () => {
       className="bg-primary text-primary-foreground py-5"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 font-arima">
           <div>
             <div className="flex items-center mb-4">
               <div className="bg-accent w-12 h-8 rounded-full flex items-center justify-center">
                 <img
-                  src="/logo.png"
+                  src="/logo.webp"
                   alt="nova properties logo"
                   arial-label="logo"
                   className="w-14 h-10 rounded-full"
                 />
               </div>
               <span className="text-xl font-bold ml-3">
-                Nova <span className="text-accent">Properties</span>
+                Nova{" "}
+                <span className="text-accent-foreground/90">Properties</span>
               </span>
             </div>
-            <p className="text-muted-foreground mb-6 text-sm">
+            <p className="text-foreground font-semibold mb-6 text-sm text-wrap">
               Helping you find your dream home since 1999. Trusted by thousands
               of families across the country.
             </p>
@@ -50,7 +51,7 @@ const Footer = () => {
                   key={name}
                   to={url}
                   aria-label={name}
-                  className="bg-secondary hover:bg-secondary-foreground text-primary w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                  className="bg-background hover:bg-secondary-foreground text-primary w-10 h-10 rounded-full flex items-center justify-center transition-colors"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -62,7 +63,7 @@ const Footer = () => {
 
           <nav aria-label="Footer Navigation">
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-2 text-sm font-arima font-semibold">
               {["Home", "About Us", "Properties", "Agents", "Contact"].map(
                 (item) => (
                   <li key={item}>
@@ -78,7 +79,7 @@ const Footer = () => {
                           ? "/agents"
                           : "/contact"
                       }`}
-                      className="text-muted-foreground hover:text-primary-foreground transition-colors"
+                      className="text-foreground/95 hover:text-primary-foreground transition-colors"
                     >
                       {item}
                     </Link>
@@ -90,7 +91,7 @@ const Footer = () => {
 
           <nav aria-label="Footer Services">
             <h3 className="text-lg font-semibold mb-4">Services</h3>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-2 text-sm font-semibold">
               {["Buying", "Renting", "Property Management", "Investment"].map(
                 (item) => (
                   <li key={item}>
@@ -102,7 +103,7 @@ const Footer = () => {
                           ? "rent"
                           : item.toLowerCase()
                       }`}
-                      className="text-muted-foreground hover:text-primary-foreground transition-colors"
+                      className="text-foreground hover:text-primary-foreground transition-colors"
                     >
                       {item}
                     </Link>
@@ -114,7 +115,7 @@ const Footer = () => {
 
           <div>
             <h3 className="text-lg font-semibold mb-4">Newsletter</h3>
-            <p className="text-muted-foreground mb-4 text-sm">
+            <p className="text-foreground mb-4 text-sm font-semibold">
               Subscribe for the latest listings and insights.
             </p>
             <form className="flex" aria-label="Newsletter Signup">
@@ -127,17 +128,17 @@ const Footer = () => {
               />
               <button
                 type="submit"
-                className="bg-accent hover:bg-accent-foreground px-4 rounded-r-md"
+                className="bg-secondary hover:bg-accent-foreground px-4 rounded-r-md"
                 aria-label="Subscribe"
               >
-                <ArrowRight className="text-white" />
+                <ArrowRight className="text-background" />
               </button>
             </form>
           </div>
         </div>
 
         {/* Bottom Footer */}
-        <div className="border-t border-border mt-12 pt-6 text-center text-muted-foreground text-sm">
+        <div className="border-t border-border mt-12 pt-6 text-center text-foreground font-semibold text-sm">
           <p>
             &copy; {new Date().getFullYear()} Nova Properties. All rights
             reserved.

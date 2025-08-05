@@ -16,6 +16,7 @@ dist-ssr
 .env.development.local
 backend
 realestate-backend
+app-layout.tsx
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

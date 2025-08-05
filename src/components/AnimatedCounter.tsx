@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from "react";
+import { useCounterContext } from "@/contexts/CounterContext";
 
 interface AnimatedCounterProps {
+  id: string;
   from?: number;
   to: number;
-  duration?: number; // milliseconds
+  duration?: number;
   prefix?: string;
   suffix?: string;
 }
 
 const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
+  id,
   from = 0,
   to,
   duration = 2000,
@@ -17,15 +20,18 @@ const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
 }) => {
   const ref = useRef<HTMLSpanElement | null>(null);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const [current, setCurrent] = useState(from);
+  const { counters, setCounter } = useCounterContext();
+  const [current, setCurrent] = useState(() => counters[id] ?? from);
 
   useEffect(() => {
+    if (counters[id] !== undefined) return;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !hasAnimated) {
           animateCount();
           setHasAnimated(true);
-          observer.disconnect(); // stop observing after animation starts
+          observer.disconnect();
         }
       },
       { threshold: 0.5 }
@@ -34,7 +40,7 @@ const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
     if (ref.current) observer.observe(ref.current);
 
     return () => observer.disconnect();
-  }, [hasAnimated]);
+  }, [hasAnimated, counters[id]]);
 
   const animateCount = () => {
     const start = performance.now();
@@ -43,7 +49,12 @@ const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
       const progress = Math.min((timestamp - start) / duration, 1);
       const value = Math.floor(from + progress * (to - from));
       setCurrent(value);
-      if (progress < 1) requestAnimationFrame(step);
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        setCounter(id, to);
+      }
     };
 
     requestAnimationFrame(step);

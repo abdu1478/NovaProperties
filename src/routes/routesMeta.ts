@@ -127,18 +127,42 @@ export const routeMeta = {
     title: "Sign In to Nova Properties | Personalized Real Estate Experience",
     description:
       "Access your saved listings, inquiries, and property preferences by signing into your Nova Properties account.",
-    keywords: ["login real estate", "signin nova", "account access"],
+    keywords: ["login nova real estate", "signin nova", "nova account access"],
+    canonical: `${import.meta.env.VITE_FRONTEND_URL}/signin`,
+    robots: "noindex, nofollow",
   },
   SIGNUP: {
     title: "Create Your Nova Properties Account",
     description:
       "Sign up to explore properties, save favorites, and receive tailored recommendations.",
-    keywords: ["register real estate", "create account", "signup nova"],
+    keywords: ["register nova real estate", "create account", "signup nova"],
+    canonical: `${import.meta.env.VITE_FRONTEND_URL}/signup`,
+    robots: "noindex, nofollow",
   },
   NOT_FOUND: {
     title: "404 - Page Not Found | Nova Properties",
     description:
       "Sorry, the page you're looking for doesn’t exist. Go back to browse properties or contact our team for help.",
     keywords: ["page not found", "404 nova", "missing page real estate"],
+  },
+  PRIVACY_POLICY: {
+    title: "Privacy Policy | Nova Properties",
+    description:
+      "Read Nova Properties' privacy policy to understand how we collect, use, and protect your personal information.",
+    keywords: ["privacy policy", "data protection", "nova properties privacy"],
+    canonical: `${import.meta.env.VITE_FRONTEND_URL}/privacy-policy`,
+  },
+  TERMS_OF_SERVICE: {
+    title: "Terms of Service | Nova Properties",
+    description:
+      "Review the terms and conditions for using Nova Properties' services, including property listings and agent consultations.",
+    keywords: ["terms of service", "user agreement", "nova properties terms"],
+    canonical: `${import.meta.env.VITE_FRONTEND_URL}/terms-of-service`,
+  },
+  FALLBACK: {
+    title: "Nova Properties | Something Went Wrong",
+    description:
+      "An unexpected error occurred. Please try again later or contact support.",
+    canonical: `${import.meta.env.VITE_FRONTEND_URL}/`,
   },
 };

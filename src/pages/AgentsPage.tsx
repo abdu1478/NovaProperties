@@ -4,13 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Phone, Search } from "lucide-react";
 import AgentCard from "@/components/Shared/AgentCard"; // Import the new card component
-import { fetchAgents, type Agent } from "@/utils/api";
+import { fetchAgents } from "@/utils/api";
 import { Link } from "react-router-dom";
+import type { AgentHandler } from "Handlers";
 
 const AgentsPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedRole, setSelectedRole] = useState<string>("all");
-  const [agents, setAgents] = useState<Agent[]>([]);
+  const [agents, setAgents] = useState<AgentHandler[]>([]);
 
   // Filter agents based on search term and role
   const filteredAgents = agents.filter((agent) => {
@@ -19,7 +20,10 @@ const AgentsPage = () => {
       agent.title.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole =
       selectedRole === "all" ||
-      agent.title.toLowerCase().includes(selectedRole.toLowerCase());
+      agent.title
+        .toLowerCase()
+        .split(/\s+/)
+        .includes(selectedRole.toLowerCase());
     return matchesSearch && matchesRole;
   });
 
@@ -39,7 +43,6 @@ const AgentsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
       <section className="relative py-20 px-4 bg-gradient-to-br from-primary/5 via-background to-muted/20">
         <div className="container mx-auto text-center max-w-4xl">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
@@ -81,7 +84,6 @@ const AgentsPage = () => {
           </div>
         </div>
       </section>
-      {/* Agents Grid Section */}
       <section className="py-16 px-4">
         <div className="container mx-auto max-w-7xl">
           {filteredAgents.length === 0 ? (

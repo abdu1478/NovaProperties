@@ -1,18 +1,11 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { submitUserMessage } from "@/utils/api";
+import type { EndUserHandler } from "Handlers";
 import { useState } from "react";
 import { toast } from "sonner";
 
-interface FormData {
-  fullName: string;
-  email: string;
-  phone: string;
-  message: string;
-  subject?: string;
-}
-
 const ContactSection = () => {
-  const [form, setForm] = useState<FormData>({
+  const [form, setForm] = useState<EndUserHandler>({
     fullName: "",
     email: "",
     phone: "",
@@ -48,7 +41,13 @@ const ContactSection = () => {
         console.log(user.id);
       }
       toast.success("Message sent successfully!");
-      setForm({ fullName: "", email: "", phone: "", message: "" });
+      setForm({
+        fullName: "",
+        email: "",
+        phone: "",
+        message: "",
+        subject: "general-inquiry",
+      });
     } catch (err: any) {
       toast.error(err.message);
     }

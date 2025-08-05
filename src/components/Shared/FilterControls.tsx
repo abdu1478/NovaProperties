@@ -57,7 +57,6 @@ const FilterControls = ({
     if (activeFilter === "rent") {
       return [
         baseOptions[0],
-        { value: "any", label: "Any Price" },
         { value: "0-10000", label: `Under ${formatPrice(10000)}` },
         {
           value: "10000-20000",
@@ -152,7 +151,7 @@ const FilterControls = ({
         <Button
           variant="ghost"
           size="sm"
-          className="text-background/90 cursor-pointer bg-foreground"
+          className="text-background/90 cursor-pointer bg-destructive"
           onClick={onReset}
         >
           Clear Filters

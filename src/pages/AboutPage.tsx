@@ -24,7 +24,6 @@ export default function About() {
   }, []);
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
       <motion.section
         className="relative py-24 bg-gradient-to-br from-primary/5 to-secondary/10"
         initial={{ opacity: 0, scale: 0.9 }}
@@ -117,6 +116,8 @@ export default function About() {
               src={officeBuildingImage}
               alt="Nova Properties headquarters - modern office building"
               className="w-full h-[400px] md:h-[500px] object-cover rounded-lg shadow-xl"
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </div>

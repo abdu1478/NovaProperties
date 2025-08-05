@@ -1,59 +1,15 @@
 import axios from "axios";
+import type {
+  PropertyHandler,
+  AgentHandler,
+  TestimonialHandler,
+} from "Handlers";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export interface Property {
-  _id: string;
-  images: string[];
-  price: number;
-  location: string;
-  bedrooms: number;
-  bathrooms: number;
-  area: string;
-  type: string;
-  yearBuilt?: number;
-  description?: string;
-  features?: string[];
-  address?: string;
-  category?: string;
-  agentId?: string | Object;
-  parking?: string;
-  interiorDescription?: string;
-  propertyType: string;
-  createdAt?: string;
-}
-
-export interface Agent {
-  name: string;
-  _id: String;
-  title: string;
-  experience: string;
-  languages: string[];
-  phone: string;
-  email: string;
-  image: string;
-}
-
-export interface Testimonial {
-  name: string;
-  location: string;
-  testimonial: string;
-  rating: number;
-  image?: string;
-}
-
-export interface EndUser {
-  fullName: string;
-  email: string;
-  phone: string;
-  message: string;
-  propertyId?: string;
-  sourcePage?: string;
-}
-
-export const fetchFeaturedProperties = async (): Promise<Property[]> => {
+export const fetchFeaturedProperties = async (): Promise<PropertyHandler[]> => {
   try {
-    const response = await axios.get<Property[]>(
+    const response = await axios.get<PropertyHandler[]>(
       `${API_BASE_URL}/properties/featured`
     );
     return response.data;
@@ -76,14 +32,12 @@ export const fetchFeaturedProperties = async (): Promise<Property[]> => {
   }
 };
 
-export const fetchProperties = async (
-  page = 1,
-  limit = 12
-): Promise<{ data: Property[]; total: number }> => {
+export const fetchAllProperties = async (): Promise<{
+  data: PropertyHandler[];
+  total: number;
+}> => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/properties`, {
-      params: { page, limit },
-    });
+    const response = await axios.get(`${API_BASE_URL}/properties`, {});
     return response.data;
   } catch (err) {
     let errorMessage = "Failed to fetch properties. Please try again later.";
@@ -104,32 +58,31 @@ export const fetchProperties = async (
   }
 };
 
-
-export const fetchAgents = async (): Promise<Agent[]> => {
+export const fetchAgents = async (): Promise<AgentHandler[]> => {
   const response = await axios.get(`${API_BASE_URL}/agents`);
   return response.data;
 };
 
-export const fetchTestimonials = async (): Promise<Testimonial[]> => {
+export const fetchTestimonials = async (): Promise<TestimonialHandler[]> => {
   const response = await axios.get(`${API_BASE_URL}/testimonials`);
-  console.log(response);
+
   return response.data;
 };
 export const fetchIndividualProperty = async (
   id: string
-): Promise<Property> => {
+): Promise<PropertyHandler> => {
   const response = await axios.get(`${API_BASE_URL}/properties/${id}`);
   return response.data;
 };
 
-export const fetchAgentById = async (id: string): Promise<Agent> => {
+export const fetchAgentById = async (id: string): Promise<AgentHandler> => {
   const response = await axios.get(`${API_BASE_URL}/agents/${id}`);
   return response.data;
 };
 
 export const fetchFavouriteProperties = async (
   userId: string
-): Promise<Property[]> => {
+): Promise<PropertyHandler[]> => {
   const response = await axios.get(
     `${API_BASE_URL}/users/${userId}/favourites`,
     {

@@ -1,5 +1,4 @@
 import axios from "axios";
-
 import {
   createContext,
   useContext,
@@ -9,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { type CredentialResponse } from "@react-oauth/google";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface User {
   id: string;
@@ -17,7 +16,11 @@ interface User {
   email: string;
   role: string;
 }
+
 interface SignupResponse {
+  message: string;
+}
+interface LoginResponse {
   message: string;
 }
 
@@ -25,7 +28,10 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: { email: string; password: string }) => Promise<void>;
+  login: (credentials: {
+    email: string;
+    password: string;
+  }) => Promise<LoginResponse>;
   logout: () => Promise<boolean>;
   signup: (credentials: {
     email: string;
@@ -34,11 +40,11 @@ interface AuthContextType {
   }) => Promise<SignupResponse>;
   redirectTo: string | null;
   setRedirectTo: (path: string | null) => void;
-  googleLogin: (res: CredentialResponse) => Promise<void>;
 }
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -55,80 +61,67 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     _setRedirectTo(path);
   }, []);
 
-  // Check initial auth status
   useEffect(() => {
-    const initialAuth = async () => {
+    const checkAuth = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/auth/me`, {
+        const res = await axios.get(`${API_BASE_URL}/auth/me`, {
           withCredentials: true,
         });
 
-        if (response.status === 200) {
-          setUser({
-            id: response.data._id,
-            name: response.data.name,
-            email: response.data.email,
-            role: response.data.role,
-          });
-        }
-      } catch (error) {
+        setUser({
+          id: res.data._id,
+          name: res.data.name,
+          email: res.data.email,
+          role: res.data.role,
+        });
+      } catch (err: unknown) {
         setUser(null);
       } finally {
         setIsLoading(false);
       }
     };
 
-    initialAuth();
+    checkAuth();
   }, []);
 
   const login = useCallback(
-    async (credentials: { email: string; password: string }) => {
+    async ({ email, password }: { email: string; password: string }) => {
       setIsLoading(true);
       try {
-        await axios.post(`${API_BASE_URL}/auth/login`, credentials, {
-          withCredentials: true,
-        });
+        const response = await axios.post(
+          `${API_BASE_URL}/auth/login`,
+          { email, password },
+          { withCredentials: true }
+        );
 
-        const userResponse = await axios.get(`${API_BASE_URL}/auth/me`, {
+        const res = await axios.get(`${API_BASE_URL}/auth/me`, {
           withCredentials: true,
         });
 
         setUser({
-          id: userResponse.data._id,
-          name: userResponse.data.name,
-          email: userResponse.data.email,
-          role: userResponse.data.role,
+          id: res.data._id,
+          name: res.data.name,
+          email: res.data.email,
+          role: res.data.role,
         });
-      } catch (error) {
-        setUser(null);
-        throw error;
+
+        return response.data || "Wellcome back";
+      } catch (error: unknown) {
+        let message = "Login failed";
+
+        if (axios.isAxiosError(error)) {
+          message = error.response?.data?.message || error.message;
+        } else if (error instanceof Error) {
+          message = error.message;
+        }
+
+        throw new Error(message);
       } finally {
         setIsLoading(false);
       }
     },
     []
   );
-
-  const googleLogin = async (response: CredentialResponse) => {
-    try {
-      const result = await axios.post(
-        `${API_BASE_URL}/auth/google`,
-        { token: response.credential },
-        { withCredentials: true }
-      );
-
-      const { user } = result.data;
-      setUser({
-        id: user._id || user.id, // Handle both _id and id
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      });
-    } catch (err) {
-      console.error("Google login failed:", err);
-      setUser(null);
-    }
-  };
 
   const signup = useCallback(
     async (credentials: {
@@ -166,26 +159,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         withCredentials: true,
       });
       setUser(null);
-      return true; // Indicate success
-    } catch (error) {
-      console.error("Logout error:", error);
-      return false; // Indicate failure
+      return true;
+    } catch (err) {
+      console.error("Logout failed", err);
+      return false;
     }
   }, []);
 
-  const value = {
-    user,
-    isAuthenticated: !!user,
-    isLoading,
-    login,
-    logout,
-    signup,
-    redirectTo,
-    setRedirectTo,
-    googleLogin,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        isLoading,
+        login,
+        logout,
+        signup,
+        redirectTo,
+        setRedirectTo,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = (): AuthContextType => {
@@ -196,7 +192,6 @@ export const useAuth = (): AuthContextType => {
   return context;
 };
 
-// HOC for protected routes
 export const withAuth = <P extends object>(
   Component: React.ComponentType<P>
 ) => {
@@ -210,12 +205,12 @@ export const withAuth = <P extends object>(
         setRedirectTo(location.pathname);
         navigate("/signin");
       }
-    }, [isAuthenticated, isLoading, location]);
+    }, [isAuthenticated, isLoading, location.pathname]);
 
     if (isLoading) {
       return (
         <div className="min-h-screen flex items-center justify-center">
-          Loading...
+          <LoadingSpinner />
         </div>
       );
     }
@@ -224,7 +219,6 @@ export const withAuth = <P extends object>(
   };
 };
 
-// HOC for public-only routes
 export const withoutAuth = <P extends object>(
   Component: React.ComponentType<P>
 ) => {
@@ -241,7 +235,7 @@ export const withoutAuth = <P extends object>(
     if (isLoading) {
       return (
         <div className="min-h-screen flex items-center justify-center">
-          Loading...
+          <LoadingSpinner />
         </div>
       );
     }
@@ -250,7 +244,6 @@ export const withoutAuth = <P extends object>(
   };
 };
 
-// HOC for role-based access
 export const withRole = <P extends object>(
   Component: React.ComponentType<P>,
   requiredRole: string
@@ -261,7 +254,7 @@ export const withRole = <P extends object>(
     if (isLoading) {
       return (
         <div className="min-h-screen flex items-center justify-center">
-          Loading...
+          <LoadingSpinner />
         </div>
       );
     }

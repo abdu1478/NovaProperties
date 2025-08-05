@@ -24,7 +24,7 @@ function AboutUsSection() {
                 <Award className="w-8 h-8 text-blue-700" />
               </div>
               <h3 className="text-2xl font-bold text-primary mb-2 text-center">
-                <AnimatedCounter to={25} suffix="+" />
+                <AnimatedCounter id="experience" to={25} suffix="+" />
               </h3>
               <p className="text-muted-foreground text-center">
                 Experience in Real Estate
@@ -36,7 +36,7 @@ function AboutUsSection() {
                 <Users className="w-8 h-8 text-blue-700" />
               </div>
               <h3 className="text-2xl font-bold text-primary mb-2 text-center">
-                <AnimatedCounter to={500} suffix="+" />
+                <AnimatedCounter id="happy-families" to={500} suffix="+" />
               </h3>
               <p className="text-muted-foreground text-center">
                 Happy Families Served
@@ -48,7 +48,12 @@ function AboutUsSection() {
                 <TrendingUp className="w-8 h-8 text-blue-700" />
               </div>
               <h3 className="text-2xl font-bold text-primary mb-2 text-center">
-                <AnimatedCounter to={50} prefix="$" suffix="M+" />
+                <AnimatedCounter
+                  id="properties-sold"
+                  to={50}
+                  prefix="$"
+                  suffix="M+"
+                />
               </h3>
               <p className="text-muted-foreground text-center">
                 Properties Sold
@@ -82,13 +87,13 @@ function AboutUsSection() {
               <div className="grid grid-cols-2 gap-4 h-full">
                 <div className="bg-accent rounded-lg flex flex-col items-center justify-center px-6">
                   <span className="text-3xl font-bold">
-                    <AnimatedCounter to={10} suffix="K+" />
+                    <AnimatedCounter id="happy-clients" to={10} suffix="K+" />
                   </span>
                   <span>Happy Clients</span>
                 </div>
                 <div className="bg-accent rounded-lg flex flex-col items-center justify-center px-12">
                   <span className="text-3xl font-bold">
-                    <AnimatedCounter to={50} suffix="+" />
+                    <AnimatedCounter id="years-experience" to={50} suffix="+" />
                   </span>
                   <span>Years Experience</span>
                 </div>

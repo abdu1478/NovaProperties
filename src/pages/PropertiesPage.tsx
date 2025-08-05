@@ -5,20 +5,10 @@ import { Button } from "@/components/ui/button";
 import ResultsHeader from "@/components/Shared/ResultsHeader";
 import PropertyCard from "@/components/Shared/PropertyCard";
 import EmptyState from "@/components/Shared/EmptyState";
-import { Skeleton } from "@/components/ui/skeleton";
 import FilterControls from "@/components/Shared/FilterControls";
 import Pagination from "@/components/Shared/Pagination";
-
-import { fetchProperties } from "@/utils/api";
-import type { Property } from "@/utils/api";
-
-const LoadingSkeleton = () => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {[...Array(6)].map((_, i) => (
-      <Skeleton key={i} className="h-80 rounded-xl" />
-    ))}
-  </div>
-);
+import LoadingSkeleton from "@/components/Shared/LoadingSkeleton";
+import { useAllProperties } from "@/hooks/useAllProperties";
 
 interface ErrorStateProps {
   error: string;
@@ -37,24 +27,22 @@ const ErrorState = ({ error, onRetry }: ErrorStateProps) => (
   </div>
 );
 
+// Moved outside component to prevent recreation on every render
+const parsePrice = (price: number | string): number => {
+  if (typeof price === "number") return price;
+  return parseFloat(price.replace(/[^0-9.]/g, "")) || 0;
+};
+
 const PropertiesPage = () => {
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, error, isLoading } = useAllProperties();
   const [searchParams] = useSearchParams();
-  const [, setIsSyncing] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 6;
   const navigate = useNavigate();
   const location = useLocation();
   const isInitialMount = useRef(true);
 
-  // Parse price to number for filtering
-  const parsePrice = (price: number | string): number => {
-    if (typeof price === "number") return price;
-    return parseFloat(price.replace(/[^0-9.]/g, "")) || 0;
-  };
-
+  const properties = data?.data ?? [];
   // Get initial filter from URL or default to 'buy'
   const initialFilter = searchParams.get("type") || "buy";
   const [activeFilter, setActiveFilter] = useState<"buy" | "rent">(
@@ -82,7 +70,7 @@ const PropertiesPage = () => {
     setCurrentPage(1);
   }, [activeFilter, searchTerm, priceRange, bedrooms, sortOption]);
 
-  // Reset priceRange when switching between buy/rent
+  // Reset filters when switching between buy/rent
   useEffect(() => {
     if (isInitialMount.current) return;
     setPriceRange("any");
@@ -94,41 +82,15 @@ const PropertiesPage = () => {
     navigate(`${location.pathname}?type=${activeFilter}`, { replace: true });
   }, [activeFilter]);
 
-  const handleProperties = async (page = 1, limit = 12) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const { data } = await fetchProperties(page, limit);
-      setProperties(data);
-    } catch (err) {
-      let errorMessage = "Failed to load properties";
-      if (err instanceof Error) {
-        errorMessage = err.message.toLowerCase().includes("network")
-          ? "Network error. Please check your connection."
-          : err.message.toLowerCase().includes("server")
-          ? "Server error. Please try again later."
-          : err.message;
-      }
-      setError(errorMessage);
-      console.error("Fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    handleProperties();
-  }, []);
-
   // Sync URL → State
   useEffect(() => {
-    const typeParam = (searchParams.get("type") as "buy" | "rent") || "buy";
+    const typeParam = searchParams.get("type") || "buy";
     const searchParam = searchParams.get("search") || "";
     const priceParam = searchParams.get("price") || "any";
     const bedroomsParam = searchParams.get("bedrooms") || "any";
     const sortParam = searchParams.get("sort") || "";
 
-    setActiveFilter(typeParam);
+    setActiveFilter(typeParam as "buy" | "rent");
     setSearchTerm(searchParam);
     setPriceRange(priceParam);
     setBedrooms(bedroomsParam);
@@ -140,11 +102,9 @@ const PropertiesPage = () => {
     let result = [...properties];
 
     // Type filter
-    if (activeFilter === "buy") {
-      result = result.filter((p) => p.category === "Buy");
-    } else {
-      result = result.filter((p) => p.category === "Rent");
-    }
+    result = result.filter((p) =>
+      activeFilter === "buy" ? p.category === "Buy" : p.category === "Rent"
+    );
 
     // Search term filter
     if (searchTerm) {
@@ -173,7 +133,6 @@ const PropertiesPage = () => {
     if (bedrooms !== "any") {
       result = result.filter((property) => {
         if (property.propertyType?.toLowerCase() === "office") return true;
-
         const num = bedrooms === "4+" ? 4 : parseInt(bedrooms);
         return property.bedrooms >= num;
       });
@@ -191,7 +150,7 @@ const PropertiesPage = () => {
     return result;
   }, [properties, activeFilter, searchTerm, priceRange, bedrooms, sortOption]);
 
-  // Pagination logic
+  // Pagination
   const paginatedProperties = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredProperties.slice(startIndex, startIndex + itemsPerPage);
@@ -206,28 +165,15 @@ const PropertiesPage = () => {
 
   // Sync State → URL
   useEffect(() => {
-    setIsSyncing(true);
-
     const params = new URLSearchParams();
-    if (activeFilter) params.set("type", activeFilter);
+    params.set("type", activeFilter);
     if (searchTerm) params.set("search", searchTerm);
     if (priceRange !== "any") params.set("price", priceRange);
     if (bedrooms !== "any") params.set("bedrooms", bedrooms);
     if (sortOption) params.set("sort", sortOption);
 
     navigate(`${location.pathname}?${params.toString()}`, { replace: true });
-
-    const timer = setTimeout(() => setIsSyncing(false), 0);
-    return () => clearTimeout(timer);
-  }, [
-    activeFilter,
-    searchTerm,
-    priceRange,
-    bedrooms,
-    sortOption,
-    navigate,
-    location.pathname,
-  ]);
+  }, [activeFilter, searchTerm, priceRange, bedrooms, sortOption]);
 
   // Reset all filters
   const resetFilters = () => {
@@ -269,31 +215,30 @@ const PropertiesPage = () => {
         onSortChange={setSortOption}
       />
 
-      {loading ? (
+      {isLoading ? (
         <LoadingSkeleton />
       ) : error ? (
         <ErrorState
-          error={error}
-          onRetry={() => {
-            setError(null);
-            handleProperties();
-          }}
+          error={error?.message ?? "Something went wrong"}
+          onRetry={() => window.location.reload()}
         />
       ) : filteredProperties.length === 0 ? (
         <EmptyState onReset={resetFilters} />
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {paginatedProperties.map((property) => (
               <PropertyCard key={property._id} property={property} />
             ))}
           </div>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={goToPage}
-          />
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+            />
+          )}
         </>
       )}
     </div>
