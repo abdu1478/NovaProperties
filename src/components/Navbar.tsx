@@ -60,7 +60,7 @@ function Navbar() {
       if (href === ROUTES.HOME) return location.pathname === ROUTES.HOME;
       return location.pathname.startsWith(href);
     },
-    [location.pathname]
+    [location.pathname],
   );
 
   const handleLogout = useCallback(async () => {
@@ -151,9 +151,9 @@ function Navbar() {
       className={cn(
         "sticky top-0 z-50 w-full font-arima",
         "bg-background/80 backdrop-blur-md border-b border-border/50",
-        "supports-[backdrop-filter]:bg-background/60",
+        "supports-backdrop-filter:bg-background/60",
         scrolled ? "py-1 max-sm:py-1" : "py-1 max-sm:py-1",
-        "lg:py-4"
+        "lg:py-4",
       )}
       data-testid="navbar"
     >
@@ -177,7 +177,7 @@ function Navbar() {
                     "rounded-full ease-in-out object-cover",
                     "group-hover:scale-105",
                     logoSize,
-                    "sm:w-10 sm:h-10 lg:w-12 lg:h-12"
+                    "sm:w-10 sm:h-10 lg:w-12 lg:h-12",
                   )}
                   width={logoDimensions.width}
                   height={logoDimensions.height}
@@ -191,7 +191,7 @@ function Navbar() {
                     "rounded-full ease-in-out",
                     "group-hover:scale-105",
                     logoSize,
-                    "sm:w-10 sm:h-10 lg:w-12 lg:h-12"
+                    "sm:w-10 sm:h-10 lg:w-12 lg:h-12",
                   )}
                   width={logoDimensions.width}
                   height={logoDimensions.height}
@@ -232,7 +232,7 @@ function Navbar() {
                 className={cn(
                   "font-bold whitespace-nowrap",
                   logoTextSize,
-                  "lg:text-xl"
+                  "lg:text-xl",
                 )}
               >
                 Nova <span className="text-primary">Pro</span>
@@ -254,7 +254,7 @@ function Navbar() {
                   "font-medium px-3 py-2",
                   "hover:bg-accent hover:scale-105",
                   "text-sm lg:text-base",
-                  isActive(item.href) && "bg-accent/80 font-semibold"
+                  isActive(item.href) && "bg-accent/80 font-bold",
                 )}
               >
                 <RefForwardedLink
@@ -286,10 +286,10 @@ function Navbar() {
           {/* User Actions */}
           <div className="flex items-center gap-1 sm:gap-2">
             {!user ? (
-              <div className="hidden md:flex items-center gap-2">
+              <div className="hidden md:flex items-center">
                 <Link
                   to={ROUTES.SIGNIN}
-                  className="flex items-center gap-2 px-4 py-1.5 border-2 bg-primary text-sm lg:text-base rounded-md transition-all duration-200 hover:scale-[1.02] hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-primary text-sidebar"
+                  className="flex items-center gap-2 px-4 py-1.5 border-2 bg-primary text-sm lg:text-base rounded-md transition-all duration-200 hover:scale-[1.02] hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-primary text-background"
                   data-testid="signin-button"
                   aria-label="Sign in"
                 >
@@ -370,7 +370,7 @@ function Navbar() {
                         "w-full justify-start px-4 py-3",
                         "transition-all duration-200 hover:bg-accent hover:translate-x-1",
                         "text-base sm:text-lg",
-                        isActive(item.href) && "bg-accent/80 font-semibold"
+                        isActive(item.href) && "bg-accent/80 font-semibold",
                       )}
                       onClick={() => setMobileOpen(false)}
                     >

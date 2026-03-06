@@ -1,7 +1,7 @@
 import React, { lazy, Suspense } from "react";
 import { createBrowserRouter, useRouteError } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
-import MainLayout from "@/layouts/MainLayout";
+import RootLayout from "@/layouts/MainLayout";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { withAuth } from "@/contexts/AuthContext";
 import { routeMeta } from "./routesMeta";
@@ -37,10 +37,11 @@ const Favourite = lazy(() => import("@/pages/Favourite"));
 const Login = lazy(() => import("@/pages/Login"));
 const Signup = lazy(() => import("@/pages/Signup"));
 const NotFoundPage = lazy(() => import("@/pages/NotFound"));
+const OAuthCallback = lazy(() => import("@/pages/OAuthCallback"));
 
 export const router = createBrowserRouter([
   {
-    element: <MainLayout />,
+    element: <RootLayout />,
     errorElement: <RouteErrorBoundary />,
     children: [
       {
@@ -105,6 +106,11 @@ export const router = createBrowserRouter([
         path: ROUTES.SIGNUP,
         element: withSuspense(<Signup />),
         handle: routeMeta.SIGNUP,
+        errorElement: <ServerErrorBoundary />,
+      },
+      {
+        path: ROUTES.CALLBACK,
+        element: withSuspense(<OAuthCallback />),
         errorElement: <ServerErrorBoundary />,
       },
     ],

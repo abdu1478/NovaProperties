@@ -138,7 +138,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         <Link
           to={ROUTES.PROPERTY_DETAIL.replace(":id", property._id)}
           state={{ from: location.pathname }}
-          className="block w-full text-center bg-primary hover:bg-gray-800 text-sidebar rounded-lg py-3 px-4 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700"
+          className="block w-full text-center bg-primary hover:bg-gray-800 text-background rounded-lg py-3 px-4 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700"
           aria-label={`View details for ${propertyType} in ${property.location}`}
         >
           View Details

@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast, Toaster } from "sonner";
 import { withoutAuth } from "@/hooks/withOutAuth";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
-// import axios from "axios";
+import { supabase } from "@/lib/supabase";
+
+const GENERIC_AUTH_ERROR = "Invalid email or password. Please try again.";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,40 +22,93 @@ const LoginPage = () => {
     rememberMe: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
+
+  // track which fields the user has actually interacted with
+  // so we dont yell at them before they've typed anything
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false,
+  });
+
+  // inline field errors driven by touched state
+  const [fieldErrors, setFieldErrors] = useState({
+    email: "",
+    password: "",
+  });
+
+  const { login, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const redirectPath = location.state?.from?.pathname || "/";
 
+  // ref so we can clear the nagivation timeout on unmount
+  const navTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (navTimerRef.current) clearTimeout(navTimerRef.current);
+    };
+  }, []);
+
+  const validateField = useCallback(
+    (field: "email" | "password", value: string): string => {
+      if (field === "email") {
+        if (!value) return "Email is required";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
+          return "Please enter a valid email address";
+      }
+      if (field === "password") {
+        if (!value) return "Password is required";
+        if (value.length < 8) return "Password must be at least 8 characters";
+      }
+      return "";
+    },
+    [],
+  );
+
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value, type, checked } = e.target;
-      setFormData((prev) => ({
-        ...prev,
-        [name]: type === "checkbox" ? checked : value,
-      }));
+      const newValue = type === "checkbox" ? checked : value;
+
+      setFormData((prev) => ({ ...prev, [name]: newValue }));
+
+      // live validate only if field has already been touched
+      if (touched[name as "email" | "password"]) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          [name]: validateField(name as "email" | "password", value),
+        }));
+      }
     },
-    []
+    [touched, validateField],
+  );
+
+  const handleBlur = useCallback(
+    (field: "email" | "password") =>
+      (e: React.FocusEvent<HTMLInputElement>) => {
+        // mark as touched so validation kicks in from here on
+        setTouched((prev) => ({ ...prev, [field]: true }));
+        setFieldErrors((prev) => ({
+          ...prev,
+          [field]: validateField(field, e.target.value),
+        }));
+      },
+    [validateField],
   );
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
 
-      // Client-side validation
-      if (!formData.email.trim() || !formData.password.trim()) {
-        toast.error("Validation Error", {
-          description: "Please fill in all required fields",
-        });
-        return;
-      }
+      // validate all fields before submitting, mark everything touched
+      const emailErr = validateField("email", formData.email);
+      const passwordErr = validateField("password", formData.password);
 
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        toast.error("Invalid Email", {
-          description: "Please enter a valid email address",
-        });
-        return;
-      }
+      setTouched({ email: true, password: true });
+      setFieldErrors({ email: emailErr, password: passwordErr });
+
+      if (emailErr || passwordErr) return;
 
       setIsSubmitting(true);
 
@@ -62,49 +116,70 @@ const LoginPage = () => {
         const response = await login({
           email: formData.email,
           password: formData.password,
+          rememberMe: formData.rememberMe,
         });
+
         toast.success("Login Successful", {
           description: response || "Welcome back!",
         });
-        setTimeout(() => {
-          navigate(redirectPath, {
-            replace: true,
-          });
+
+        // delay naviagtion slightly so the toast is visible, clear on unmount
+        navTimerRef.current = setTimeout(() => {
+          navigate(redirectPath, { replace: true });
         }, 1500);
-        return;
       } catch (error: any) {
-        console.error("Login error:", error);
-        let errorMessage = "Login failed. Please try again.";
+        // log internally, never expose raw server errors to the UI
+        console.error("[auth] login error:", error);
 
-        if (error?.message) {
-          errorMessage = error.message;
-        }
+        // supabase handles rate limiting server-side — we surface its error code
+        // if it comes back as rate_limit we show a specific message, otherwise generic
+        const isRateLimited =
+          error?.status === 429 ||
+          error?.message?.toLowerCase().includes("rate limit");
 
-        if (errorMessage == "Request failed with status code 401") {
-          errorMessage = "Invalid email or password. Please try again.";
-        }
-
-        toast.error("Login failed", {
-          description: errorMessage,
+        toast.error(isRateLimited ? "Too many attempts" : "Login failed", {
+          description: isRateLimited
+            ? "Please wait a moment before trying again."
+            : GENERIC_AUTH_ERROR,
         });
       } finally {
         setIsSubmitting(false);
       }
     },
-    [formData, login, navigate, redirectPath]
+    [formData, login, navigate, redirectPath, validateField],
   );
 
-  // useEffect(() => {
-  //   toast.promise(Promise.resolve(), {
-  //     loading: "Loading...",
-  //     success: "Login page loaded successfully!",
-  //     error: "Failed to load login page",
-  //   });
-  // }, []);
+  const handleGoogleLogin = useCallback(async () => {
+    // redirectTo uses the env var — but real open-redirect protection
+    // must be enforced via supabase's allowed redirect URLs in the dashboard
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${import.meta.env.VITE_FRONTEND_URL}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      console.error("[auth] google oauth error:", error);
+      toast.error("Google login failed", {
+        description: GENERIC_AUTH_ERROR,
+      });
+    }
+  }, []);
 
   const togglePasswordVisibility = useCallback(() => {
     setShowPassword((prev) => !prev);
   }, []);
+
+  // dont render until auth context has resolved its initial session check
+  // prevents a flash of the login page for already-authenticated users
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -158,23 +233,34 @@ const LoginPage = () => {
                       type="email"
                       name="email"
                       placeholder="your.email@example.com"
-                      className="pl-10 h-11 focus:bg-primary"
+                      className={`pl-10 h-11 ${touched.email && fieldErrors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
                       value={formData.email}
                       required
                       disabled={isSubmitting}
                       onChange={handleInputChange}
+                      onBlur={handleBlur("email")}
                       autoComplete="email"
                       aria-required="true"
+                      aria-describedby={
+                        touched.email && fieldErrors.email
+                          ? "email-error"
+                          : undefined
+                      }
+                      aria-invalid={
+                        touched.email && !!fieldErrors.email ? true : undefined
+                      }
                       data-testid="email-input"
-                      onBlur={(e) => {
-                        if (
-                          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value)
-                        ) {
-                          toast.error("Please enter a valid email address");
-                        }
-                      }}
                     />
                   </div>
+                  {touched.email && fieldErrors.email && (
+                    <p
+                      id="email-error"
+                      className="text-xs text-destructive mt-1"
+                      role="alert"
+                    >
+                      {fieldErrors.email}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -196,20 +282,26 @@ const LoginPage = () => {
                       type={showPassword ? "text" : "password"}
                       name="password"
                       placeholder="••••••••"
-                      className="pl-10 pr-10 h-11"
+                      className={`pl-10 pr-10 h-11 ${touched.password && fieldErrors.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
                       required
                       value={formData.password}
                       disabled={isSubmitting}
                       onChange={handleInputChange}
+                      onBlur={handleBlur("password")}
                       autoComplete="current-password"
                       minLength={8}
                       aria-required="true"
+                      aria-describedby={
+                        touched.password && fieldErrors.password
+                          ? "password-error"
+                          : undefined
+                      }
+                      aria-invalid={
+                        touched.password && !!fieldErrors.password
+                          ? true
+                          : undefined
+                      }
                       data-testid="password-input"
-                      onBlur={(e) => {
-                        if (e.target.value.length < 8) {
-                          toast.error("Password must be at least 8 characters");
-                        }
-                      }}
                     />
                     <Button
                       type="button"
@@ -229,6 +321,15 @@ const LoginPage = () => {
                       )}
                     </Button>
                   </div>
+                  {touched.password && fieldErrors.password && (
+                    <p
+                      id="password-error"
+                      className="text-xs text-destructive mt-1"
+                      role="alert"
+                    >
+                      {fieldErrors.password}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between mt-4">
@@ -252,7 +353,7 @@ const LoginPage = () => {
                     asChild
                     variant="link"
                     size="sm"
-                    className="px-0 text-sm *:hover:underline text-blue-700/95"
+                    className="px-0 text-sm text-blue-700/95"
                   >
                     <Link to="/forgot-password">Forgot password?</Link>
                   </Button>
@@ -316,8 +417,9 @@ const LoginPage = () => {
               <Button
                 variant="outline"
                 className="gap-2 h-10"
-                onClick={() => toast.info("Google login coming soon")}
+                onClick={handleGoogleLogin}
                 type="button"
+                disabled={isSubmitting}
                 data-testid="google-login"
               >
                 <GoogleIcon />
@@ -328,6 +430,7 @@ const LoginPage = () => {
                 className="gap-2 h-10"
                 onClick={() => toast.info("GitHub login coming soon")}
                 type="button"
+                disabled={isSubmitting}
                 data-testid="github-login"
               >
                 <GitHubIcon />
@@ -343,7 +446,6 @@ const LoginPage = () => {
   );
 };
 
-// Optimized SVG components
 const GoogleIcon = () => (
   <svg
     className="h-4 w-4"

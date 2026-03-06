@@ -9,4 +9,5 @@ export const ROUTES = {
   FAVORITES: "/favorite",
   SIGNIN: "/signin",
   SIGNUP: "/signup",
+  CALLBACK: "/auth/callback",
 };

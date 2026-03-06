@@ -124,7 +124,7 @@ export const routeMeta = {
     keywords: ["saved listings", "favorite properties", "compare real estate"],
   },
   SIGNIN: {
-    title: "Sign In to Nova Properties | Personalized Real Estate Experience",
+    title: "Sign In to Your account | Personalized Real Estate Experience",
     description:
       "Access your saved listings, inquiries, and property preferences by signing into your Nova Properties account.",
     keywords: ["login nova real estate", "signin nova", "nova account access"],
@@ -132,7 +132,7 @@ export const routeMeta = {
     robots: "noindex, nofollow",
   },
   SIGNUP: {
-    title: "Create Your Nova Properties Account",
+    title: "Create Your Account",
     description:
       "Sign up to explore properties, save favorites, and receive tailored recommendations.",
     keywords: ["register nova real estate", "create account", "signup nova"],

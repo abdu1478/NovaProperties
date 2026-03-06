@@ -6,5 +6,6 @@ declare module "react-router-dom" {
     description?: string;
     canonical?: string;
     structuredData?: object;
+    robots?: string;
   }
 }

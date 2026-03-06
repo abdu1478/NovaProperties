@@ -2,7 +2,6 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Home } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
 
 interface ErrorFallbackProps {
@@ -22,7 +21,6 @@ export const ErrorFallback: React.FC<ErrorFallbackProps> = ({
   className = "",
   type = "component",
 }) => {
-  const navigate = useNavigate();
   const [isPerformingAction, setIsPerformingAction] = React.useState(false);
   const [imageError, setImageError] = React.useState(false);
 

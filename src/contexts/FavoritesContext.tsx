@@ -25,7 +25,7 @@ interface FavoritesContextType {
 }
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -42,7 +42,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
 
     try {
       setLoading(true);
-      const data = await fetchFavouriteProperties(user.id);
+      const data = await fetchFavouriteProperties(user?.id);
       setFavorites(data);
       setError(null);
     } catch (err) {
@@ -66,7 +66,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
     (propertyId: string): boolean => {
       return favorites.some((p) => p._id === propertyId);
     },
-    [favorites]
+    [favorites],
   );
 
   const toggleFavorite = useCallback(
@@ -128,7 +128,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
         setMutatingIds((prev) => prev.filter((id) => id !== propertyId));
       }
     },
-    [user, isAuthenticated, favorites, fetchFavorites]
+    [user, isAuthenticated, favorites, fetchFavorites],
   );
   const removeFavorite = useCallback(
     async (propertyId: string) => {
@@ -165,7 +165,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
         setMutatingIds((prev) => prev.filter((id) => id !== propertyId));
       }
     },
-    [user, isAuthenticated, fetchFavorites]
+    [user, isAuthenticated, fetchFavorites],
   );
 
   const refetchFavorites = useCallback(async () => {
