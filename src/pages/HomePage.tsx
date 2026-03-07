@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Search, UserCheck, ChevronDown, MapPin, Star, ArrowRight } from "lucide-react";
+import { Search, UserCheck, ChevronDown, MapPin, ArrowRight } from "lucide-react";
 import { motion, useInView } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { ErrorBoundary } from "react-error-boundary";
@@ -13,14 +13,14 @@ import { useTestimonials } from "@/hooks/useTestimonials";
 const heroImage =
   "https://ik.imagekit.io/novaProperties/heroBack.webp?tr=w-1600,q-75&updatedAt=1754053420576";
 
-// ─── Lazy Sections ────────────────────────────────────────────────────────────
+// ─── Lazy Sections 
 const ContactSection = React.lazy(() => import("@/components/Shared/ContactUs"));
 const TestimonialsSection = React.lazy(() => import("@/components/Shared/TestimonialCard"));
 const AboutUsSection = React.lazy(() => import("@/components/About/AboutUsSection"));
 const PropertyCard = React.lazy(() => import("@/components/Shared/PropertyCard"));
 const AgentCard = React.lazy(() => import("@/components/Shared/AgentCard"));
 
-// ─── Animation Variants ───────────────────────────────────────────────────────
+// ─── Animation Variants 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 28 },
   show: {
@@ -48,7 +48,7 @@ const cardReveal: Variants = {
   },
 };
 
-// ─── Skeletons ────────────────────────────────────────────────────────────────
+// ─── Skeletons 
 function PropertyCardSkeleton() {
   return (
     <div className="rounded-xl overflow-hidden bg-card border border-border animate-pulse">
@@ -85,7 +85,7 @@ function SectionError({ title }: { title?: string }) {
   );
 }
 
-// ─── Scroll-triggered wrapper ──────────────────────────────────────────────────
+// ─── Scroll-triggered wrapper 
 function RevealSection({
   children,
   className,
@@ -108,7 +108,7 @@ function RevealSection({
   );
 }
 
-// ─── Hero Section ─────────────────────────────────────────────────────────────
+// ─── Hero Section 
 function HeroSection() {
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
@@ -124,13 +124,13 @@ function HeroSection() {
           height={1080}
           sizes="(max-width: 640px) 640px, (max-width: 960px) 960px, 1920px"
         />
-        {/* Dark gradient overlay — reliable contrast in both themes */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+        
+        
+        <div className="absolute inset-0 bg-linear-to-b from-black/60 via-black/40 to-black/70" />
       </div>
 
-      {/* Subtle grain texture overlay */}
       <div
-        className="absolute inset-0 z-[1] opacity-[0.03] pointer-events-none"
+        className="absolute inset-0 z-1 opacity-[0.03] pointer-events-none"
         style={{
           backgroundImage:
             "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E\")",
@@ -242,7 +242,8 @@ function HeroSection() {
   );
 }
 
-// ─── Featured Listings Section ────────────────────────────────────────────────
+// ─── Featured Listings Section 
+
 function FeaturedListingsSection() {
   const { data: featuredProperties = [], isLoading, isError } =
     useFeaturedProperties();
@@ -313,7 +314,8 @@ function FeaturedListingsSection() {
   );
 }
 
-// ─── Agents Section ───────────────────────────────────────────────────────────
+// ─── Agents Section 
+
 function AgentsSection() {
   const { data: agents = [], isLoading, isError } = useAgents();
 
@@ -357,7 +359,8 @@ function AgentsSection() {
   );
 }
 
-// ─── Stats Banner ─────────────────────────────────────────────────────────────
+// ─── Stats Banner 
+
 const stats = [
   { label: "Properties Sold", value: "2,400+" },
   { label: "Happy Clients", value: "1,800+" },
@@ -402,7 +405,8 @@ function StatsBanner() {
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ─── Page 
+
 function HomePage() {
   return (
     <div className="min-h-screen bg-background">
@@ -425,15 +429,13 @@ function HomePage() {
         </React.Suspense>
       </ErrorBoundary>
 
-      {/* Stats banner — static data, no loading needed */}
       <StatsBanner />
 
-      {/* Featured Listings — owns its own loading/error state */}
+
       <ErrorBoundary fallback={<SectionError title="Featured listings unavailable." />}>
         <FeaturedListingsSection />
       </ErrorBoundary>
-
-      {/* Agents — owns its own loading/error state */}
+      
       <ErrorBoundary fallback={<SectionError title="Agent listings unavailable." />}>
         <AgentsSection />
       </ErrorBoundary>
