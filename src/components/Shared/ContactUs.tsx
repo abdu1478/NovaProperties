@@ -17,7 +17,7 @@ const ContactSection = () => {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -74,7 +74,8 @@ const ContactSection = () => {
               <div>
                 <label
                   htmlFor="fullName"
-                  className="block text-sm font-medium text-foreground mb-2"
+                  className="block text-sm font-medium text-foreground mb-2 text-display"
+                  aria-label="Full Name"
                 >
                   Full Name *
                 </label>
@@ -96,6 +97,7 @@ const ContactSection = () => {
                 <label
                   htmlFor="email"
                   className="block text-sm font-medium text-foreground mb-2"
+                  aria-label="Email Address"
                 >
                   Email Address *
                 </label>
@@ -119,6 +121,7 @@ const ContactSection = () => {
                 <label
                   htmlFor="phone"
                   className="block text-sm font-medium text-foreground mb-2"
+                  aria-label="Phone Number"
                 >
                   Phone Number
                 </label>
@@ -137,8 +140,9 @@ const ContactSection = () => {
 
               <div>
                 <label
-                  htmlFor="subject"
+                  htmlFor="Inquiry Type"
                   className="block text-sm font-medium text-foreground mb-2"
+                  aria-label="Inquiry Type"
                 >
                   Inquiry Type
                 </label>

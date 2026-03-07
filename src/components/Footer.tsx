@@ -112,7 +112,7 @@ const Footer = () => {
 
           <div>
             <h3 className="text-lg font-semibold mb-4">Newsletter</h3>
-            <p className="text-foreground mb-4 text-sm font-semibold">
+            <p className="text-background mb-4 text-sm font-semibold">
               Subscribe for the latest listings and insights.
             </p>
             <form className="flex" aria-label="Newsletter Signup">
@@ -135,7 +135,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Footer */}
-        <div className="border-t border-border mt-12 pt-6 text-center text-foreground font-semibold text-sm">
+        <div className="border-t border-border mt-12 pt-6 text-center text-background font-semibold text-sm">
           <p>
             &copy; {new Date().getFullYear()} Nova Properties. All rights
             reserved.

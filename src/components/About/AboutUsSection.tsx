@@ -78,9 +78,9 @@ function AboutUsSection() {
                 <div className="flex justify-start">
                   <Link
                     to="/about-us"
-                    className="bg-chart-3 hover:bg-amber-600 text-center text-secondary-foreground rounded-lg px-6 py-3 font-bold flex items-center"
+                    className="bg-primary hover:bg-amber-600 text-center justify-center font-display text-secondary-foreground rounded-lg px-6 py-3 font-bold flex items-center"
                   >
-                    Meet Our Team <MoveRight className="ml-2 w-5 h-5" />
+                    Meet Our Team <MoveRight className="ml-2 w-5 h-5justify-center flex items-center" />
                   </Link>
                 </div>
               </div>

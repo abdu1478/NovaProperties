@@ -38,7 +38,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
       aria-labelledby={`property-${property._id}-title`}
     >
       {/* Image section */}
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div className="relative aspect-4/3 overflow-hidden">
         {property.images?.length > 0 && !imageError ? (
           <img
             src={property.images[0]}
@@ -51,7 +51,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
             height={400}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100">
             <div className="text-center p-4">
               <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mx-auto mb-3" />
               <span className="text-gray-400 text-sm">Image not available</span>
@@ -98,13 +98,13 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         {/* Title */}
         <h3
           id={`property-${property._id}-title`}
-          className="text-lg font-semibold text-accent-foreground line-clamp-1"
+          className="text-lg font-semibold text-accent-foreground line-clamp-1 "
         >
           {propertyType} in {property.location.split(",")[0]}
         </h3>
 
         {/* Price */}
-        <div className="flex items-baseline">
+        <div className="flex items-baseline font-arima">
           <p className="text-2xl font-bold text-accent-foreground/90">
             {formatPrice(property.price)}
           </p>
@@ -138,7 +138,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         <Link
           to={ROUTES.PROPERTY_DETAIL.replace(":id", property._id)}
           state={{ from: location.pathname }}
-          className="block w-full text-center bg-primary hover:bg-gray-800 text-background rounded-lg py-3 px-4 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700"
+          className="block w-full text-center bg-primary hover:bg-gray-800 text-background rounded-lg py-3 px-4 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700 font-display"
           aria-label={`View details for ${propertyType} in ${property.location}`}
         >
           View Details

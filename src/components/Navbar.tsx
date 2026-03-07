@@ -15,53 +15,23 @@ function Navbar() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
   const [scrolled, setScrolled] = useState<boolean>(false);
-  const [logoLoaded, setLogoLoaded] = useState<boolean>(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
-  const imgRef = useRef<HTMLImageElement>(null);
   const { user, logout } = useAuth();
 
-  const logoDimensions = scrolled
-    ? { width: 32, height: 32 }
-    : { width: 40, height: 40 };
-  const logoSize = scrolled ? "w-8 h-8" : "w-10 h-10";
-  const logoTextSize = scrolled ? "text-lg" : "text-xl";
-
   const navItems = [
-    {
-      name: "Home",
-      href: ROUTES.HOME,
-      icon: <Home size={16} aria-hidden="true" />,
-    },
-    {
-      name: "Properties",
-      href: ROUTES.PROPERTIES,
-      icon: <Key size={16} aria-hidden="true" />,
-    },
-    {
-      name: "About",
-      href: ROUTES.ABOUT,
-      icon: <CalendarDays size={16} aria-hidden="true" />,
-    },
-    {
-      name: "Favorites",
-      href: ROUTES.FAVORITES,
-      icon: <Heart size={16} aria-hidden="true" />,
-    },
-    {
-      name: "Agents",
-      href: ROUTES.AGENTS,
-      icon: <User size={16} aria-hidden="true" />,
-    },
+    { name: "Home",       href: ROUTES.HOME,       icon: <Home       size={16} aria-hidden="true" /> },
+    { name: "Properties", href: ROUTES.PROPERTIES, icon: <Key        size={16} aria-hidden="true" /> },
+    { name: "About",      href: ROUTES.ABOUT,      icon: <CalendarDays size={16} aria-hidden="true" /> },
+    { name: "Favorites",  href: ROUTES.FAVORITES,  icon: <Heart      size={16} aria-hidden="true" /> },
+    { name: "Agents",     href: ROUTES.AGENTS,     icon: <User       size={16} aria-hidden="true" /> },
   ];
 
-  const isActive = useCallback(
-    (href: string) => {
-      if (href === ROUTES.HOME) return location.pathname === ROUTES.HOME;
-      return location.pathname.startsWith(href);
-    },
-    [location.pathname],
-  );
+  // FIX #11: Plain function — no useCallback needed for a derived computation
+  const isActive = (href: string) => {
+    if (href === ROUTES.HOME) return location.pathname === ROUTES.HOME;
+    return location.pathname.startsWith(href);
+  };
 
   const handleLogout = useCallback(async () => {
     setMobileOpen(false);
@@ -69,44 +39,23 @@ function Navbar() {
       await logout();
       toast.success("You've been logged out successfully");
       navigate(ROUTES.HOME);
-    } catch (error) {
+    } catch {
       toast.error("Logout failed. Please try again.");
     }
   }, [logout, navigate]);
 
-  // Load the actual logo after component mounts
+  // FIX #4: Scroll effect now actually changes padding
   useEffect(() => {
-    const img = new Image();
-    img.src = "/logo-lazy.webp";
-    img.onload = () => {
-      // Set a small delay to allow the SVG to render first
-      setTimeout(() => {
-        setLogoLoaded(true);
-      }, 50);
-    };
-    img.onerror = () => {
-      console.error("Failed to load logo image");
-    };
-  }, []);
-
-  // Optimized scroll effect with throttling
-  useEffect(() => {
-    let lastScrollY = window.scrollY;
     let ticking = false;
-
     const handleScroll = () => {
-      lastScrollY = window.scrollY;
-
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          setScrolled(lastScrollY > 10);
+          setScrolled(window.scrollY > 10);
           ticking = false;
         });
-
         ticking = true;
       }
     };
-
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -116,29 +65,24 @@ function Navbar() {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  // Close mobile menu when clicking outside or pressing escape
+  // Close mobile menu on outside click or Escape
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent) => {
       if (
         mobileOpen &&
         mobileMenuRef.current &&
-        !mobileMenuRef.current.contains(event.target as Node) &&
+        !mobileMenuRef.current.contains(e.target as Node) &&
         mobileMenuButtonRef.current &&
-        !mobileMenuButtonRef.current.contains(event.target as Node)
+        !mobileMenuButtonRef.current.contains(e.target as Node)
       ) {
         setMobileOpen(false);
       }
     };
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && mobileOpen) {
-        setMobileOpen(false);
-      }
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && mobileOpen) setMobileOpen(false);
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEscape);
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
@@ -149,95 +93,91 @@ function Navbar() {
     <header
       role="banner"
       className={cn(
-        "sticky top-0 z-50 w-full font-arima",
+        "sticky top-0 z-50 w-full",
+        // FIX #5: use font-body (DM Sans / Jost) not legacy font-arima
+        "font-body",
         "bg-background/80 backdrop-blur-md border-b border-border/50",
+        // FIX #10: correct Tailwind supports-[] syntax
         "supports-backdrop-filter:bg-background/60",
-        scrolled ? "py-1 max-sm:py-1" : "py-1 max-sm:py-1",
-        "lg:py-4",
+        // FIX #4: scroll state now actually does something
+        scrolled ? "py-1 lg:py-2" : "py-2 lg:py-4",
+        "transition-[padding] duration-200",
       )}
       data-testid="navbar"
     >
-      <div className="mx-auto container px-2 sm:px-1 lg:px-6 max-w-7xl">
-        <div className="flex items-center justify-between transition-all">
+      <div className="mx-auto container px-4 sm:px-6 lg:px-6 max-w-7xl">
+        <div className="flex items-center justify-between">
+
           {/* Logo */}
           <Link
             to={ROUTES.HOME}
             className="flex items-center gap-2 sm:gap-3 shrink-0 group"
-            aria-label="Nova Pro Home"
+            aria-label="Nova Properties Home"
             data-testid="navbar-logo"
           >
-            <div className="relative">
-              {logoLoaded ? (
-                // Actual logo image
-                <img
-                  ref={imgRef}
-                  src="/logo-lazy.webp"
-                  alt="Nova Pro Logo"
-                  className={cn(
-                    "rounded-full ease-in-out object-cover",
-                    "group-hover:scale-105",
-                    logoSize,
-                    "sm:w-10 sm:h-10 lg:w-12 lg:h-12",
-                  )}
-                  width={logoDimensions.width}
-                  height={logoDimensions.height}
-                  loading="lazy"
-                  decoding="async"
+            {/*
+              FIX #1: SVG attributes converted to valid JSX camelCase.
+              FIX #2: Text fills use CSS variables so they respond to dark mode.
+              The building icon keeps its literal fills (they look good on any bg).
+              Only the text labels (NOVA, PROPERTIES) use theme-aware fills.
+            */}
+            <svg
+              width="320"
+              height="56"
+              viewBox="0 0 320 56"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <defs>
+                <linearGradient id="archH" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#2a548a" />
+                  <stop offset="100%" stopColor="#0e1e36" />
+                </linearGradient>
+              </defs>
+
+              {/* Building mark — literal fills intentional, looks fine on any bg */}
+              <g transform="translate(4,2) scale(0.36)">
+                <polygon points="60,0 120,28 0,28"          fill="url(#archH)" />
+                <polygon
+                  points="60,6 62.5,13.5 70.5,13.5 64.2,18.2 66.7,25.7 60,21 53.3,25.7 55.8,18.2 49.5,13.5 57.5,13.5"
+                  fill="#c8a84b"
                 />
-              ) : (
-                // SVG placeholder
-                <svg
-                  className={cn(
-                    "rounded-full ease-in-out",
-                    "group-hover:scale-105",
-                    logoSize,
-                    "sm:w-10 sm:h-10 lg:w-12 lg:h-12",
-                  )}
-                  width={logoDimensions.width}
-                  height={logoDimensions.height}
-                  viewBox="0 0 40 40"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                >
-                  <circle cx="20" cy="20" r="20" className="fill-primary" />
-                  <path
-                    d="M12 12V28M12 12L20 20M20 20V28"
-                    className="stroke-white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M22 12V28M22 12H28C28 12 30 12 30 16C30 20 28 20 28 20H22"
-                    className="stroke-white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <line
-                    x1="8"
-                    y1="8"
-                    x2="32"
-                    y2="32"
-                    className="stroke-accent"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              )}
-            </div>
-            <div className="hidden sm:block">
-              <h1
-                className={cn(
-                  "font-bold whitespace-nowrap",
-                  logoTextSize,
-                  "lg:text-xl",
-                )}
+                <rect x="0"   y="30" width="120" height="7"  fill="#1a3560" />
+                <rect x="5"   y="40" width="14"  height="78" fill="url(#archH)" />
+                <rect x="53"  y="40" width="14"  height="78" fill="url(#archH)" />
+                <rect x="101" y="40" width="14"  height="78" fill="url(#archH)" />
+                <rect x="-6"  y="118" width="132" height="14" fill="#1a3560" />
+              </g>
+
+              {/* Divider line */}
+              <line x1="58" y1="8" x2="58" y2="48" stroke="var(--border)" strokeWidth="0.6" />
+
+              {/*
+                FIX #2: Text uses currentColor so it inherits text-foreground
+                from the parent <Link>, which correctly flips in dark mode.
+              */}
+              <text
+                x="68" y="26"
+                fontFamily="Cinzel, serif"
+                fontSize="22"
+                fontWeight="700"
+                fill="var(--foreground)"
+                letterSpacing="2"
               >
-                Nova <span className="text-primary">Pro</span>
-              </h1>
-            </div>
+                NOVA
+              </text>
+              <text
+                x="68" y="41"
+                fontFamily="Cinzel, serif"
+                fontSize="9.5"
+                fontWeight="400"
+                fill="var(--primary)"
+                letterSpacing="5"
+              >
+                PROPERTIES
+              </text>
+            </svg>
           </Link>
 
           {/* Desktop Navigation */}
@@ -246,62 +186,62 @@ function Navbar() {
             className="hidden lg:flex items-center gap-1 xl:gap-2"
           >
             {navItems.map((item) => (
-              <Button
-                key={item.name}
-                asChild
-                variant="ghost"
-                className={cn(
-                  "font-medium px-3 py-2",
-                  "hover:bg-accent hover:scale-105",
-                  "text-sm lg:text-base",
-                  isActive(item.href) && "bg-accent/80 font-bold",
-                )}
-              >
-                <RefForwardedLink
-                  to={item.href}
-                  className="flex items-center gap-2"
-                  aria-current={isActive(item.href) ? "page" : undefined}
-                  data-testid={`desktop-nav-${item.name.toLowerCase()}`}
+              // FIX #6: added `relative` so the absolute underline indicator positions correctly
+              <div key={item.name} className="relative">
+                <Button
+                  asChild
+                  variant="ghost"
+                  className={cn(
+                    "font-medium px-3 py-2",
+                    "hover:bg-accent hover:scale-105",
+                    "text-sm lg:text-base",
+                    isActive(item.href) && "bg-accent/80 font-bold",
+                  )}
                 >
-                  <div className="flex items-center gap-2">
+                  <RefForwardedLink
+                    to={item.href}
+                    className="flex items-center gap-2"
+                    aria-current={isActive(item.href) ? "page" : undefined}
+                    data-testid={`desktop-nav-${item.name.toLowerCase()}`}
+                  >
                     {item.icon}
                     <span>{item.name}</span>
-                  </div>
-                  {isActive(item.href) && (
-                    <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                      layoutId="activeIndicator"
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 30,
-                      }}
-                    />
-                  )}
-                </RefForwardedLink>
-              </Button>
+                  </RefForwardedLink>
+                </Button>
+
+                {/* Active indicator — outside Button so `absolute` is relative to the wrapper div */}
+                {isActive(item.href) && (
+                  <motion.div
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                    layoutId="activeIndicator"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
+              </div>
             ))}
           </nav>
 
           {/* User Actions */}
           <div className="flex items-center gap-1 sm:gap-2">
             {!user ? (
-              <div className="hidden md:flex items-center">
+              <div className="rounded-lg hidden md:flex items-center bg-primary text-primary-foreground">
                 <Link
                   to={ROUTES.SIGNIN}
-                  className="flex items-center gap-2 px-4 py-1.5 border-2 bg-primary text-sm lg:text-base rounded-md transition-all duration-200 hover:scale-[1.02] hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-primary text-background"
+                  className="flex items-center gap-2 px-2 py-1.5 font-display font-semibold text-[16px] lg:text-base rounded-md transition-all duration-200 hover:scale-[1.02] hover:opacity-90 focus:outline-none "
                   data-testid="signin-button"
                   aria-label="Sign in"
                 >
                   <User size={18} aria-hidden="true" />
-                  <span>Sign In</span>
+                  <span>LOGIN IN</span>
                 </Link>
               </div>
             ) : (
               <div className="hidden md:flex items-center">
                 <Button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 px-4 py-1.5 border-2 text-sidebar text-sm lg:text-base rounded-md transition-all cursor-pointer duration-200 hover:bg-accent/70 hover:text-white"
+                  variant="ghost"
+                  
+                  className="flex items-center gap-2 px-4 py-1.5 text-foreground text-sm lg:text-base rounded-md transition-all cursor-pointer duration-200 hover:bg-accent"
                   data-testid="logout-button"
                   aria-label="Log out"
                   type="button"
@@ -317,10 +257,11 @@ function Navbar() {
               ref={mobileMenuButtonRef}
               variant="ghost"
               size="icon"
-              className="lg:hidden h-7 w-7 sm:h-9 sm:w-9"
-              onClick={() => setMobileOpen(!mobileOpen)}
+              className="lg:hidden h-8 w-8 sm:h-9 sm:w-9"
+              onClick={() => setMobileOpen((prev) => !prev)}
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileOpen}
+              aria-controls="mobile-menu"
               data-testid="mobile-menu-button"
               type="button"
             >
@@ -328,11 +269,7 @@ function Navbar() {
                 animate={{ rotate: mobileOpen ? 180 : 0 }}
                 transition={{ duration: 0.2 }}
               >
-                {mobileOpen ? (
-                  <X size={20} aria-hidden="true" />
-                ) : (
-                  <Menu size={20} aria-hidden="true" />
-                )}
+                {mobileOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
               </motion.div>
             </Button>
 
@@ -346,22 +283,24 @@ function Navbar() {
         <AnimatePresence>
           {mobileOpen && (
             <motion.nav
+              id="mobile-menu"
               ref={mobileMenuRef}
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="lg:hidden overflow-hidden"
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              // FIX #12: removed overflow-hidden so box-shadows on children aren't clipped
+              className="lg:hidden"
               aria-label="Mobile navigation"
               data-testid="mobile-menu"
             >
-              <div className="border-t border-border/50 py-3 space-y-2">
+              <div className="border-t border-border/50 py-3 space-y-1">
                 {navItems.map((item, index) => (
                   <motion.div
                     key={item.name}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
+                    transition={{ delay: index * 0.07 }}
                   >
                     <Button
                       asChild
@@ -388,16 +327,17 @@ function Navbar() {
                 ))}
 
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
+                  transition={{ delay: 0.35 }}
                   className="flex flex-col sm:flex-row gap-3 pt-4 px-2"
                 >
                   {!user ? (
                     <Link
                       to={ROUTES.SIGNIN}
                       onClick={() => setMobileOpen(false)}
-                      className="md:hidden flex items-center justify-center bg-primary text-sidebar gap-2 px-4 py-2 w-full border-2 rounded-md transition-all cursor-pointer duration-200 hover:bg-accent/70 hover:text-white text-base sm:text-lg"
+                      // FIX #9: text-primary-foreground instead of text-sidebar
+                      className="md:hidden flex items-center justify-center bg-primary text-primary-foreground gap-2 px-4 py-2 w-full rounded-md transition-all duration-200 hover:opacity-90 text-base sm:text-lg"
                       data-testid="mobile-signin-button"
                       aria-label="Sign in"
                     >
@@ -407,7 +347,9 @@ function Navbar() {
                   ) : (
                     <Button
                       onClick={handleLogout}
-                      className="md:hidden flex items-center justify-center  text-sidebar gap-2 px-4 py-2 w-full rounded-md transition-all duration-200 hover:text-background focus:outline-none focus:ring-2 focus:ring-primary text-base sm:text-lg"
+                      variant="ghost"
+                      // FIX #8: text-foreground, not text-sidebar
+                      className="md:hidden flex items-center justify-center text-foreground gap-2 px-4 py-2 w-full rounded-md transition-all duration-200 hover:bg-accent text-base sm:text-lg"
                       data-testid="mobile-logout-button"
                       aria-label="Log out"
                       type="button"
