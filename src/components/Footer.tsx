@@ -144,7 +144,7 @@ const Footer = () => {
                 </g>
 
                 <text
-                  x="110"
+                  x="115"
                   y="32"
                   fontFamily="Cinzel, serif"
                   fontSize="38"
@@ -155,7 +155,7 @@ const Footer = () => {
                   NOVA
                 </text>
                 <text
-                  x="110"
+                  x="115"
                   y="54"
                   fontFamily="Cinzel, serif"
                   fontSize="24"
@@ -167,7 +167,7 @@ const Footer = () => {
                 </text>
 
                 <line
-                  x1="110"
+                  x1="115"
                   y1="66"
                   x2="292"
                   y2="66"
@@ -176,7 +176,7 @@ const Footer = () => {
                 />
 
                 <text
-                  x="110"
+                  x="115"
                   y="82"
                   fontFamily="Montserrat, sans-serif"
                   fontSize="12"
