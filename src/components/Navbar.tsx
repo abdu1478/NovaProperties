@@ -27,7 +27,7 @@ function Navbar() {
     { name: "Agents",     href: ROUTES.AGENTS,     icon: <User       size={16} aria-hidden="true" /> },
   ];
 
-  // FIX #11: Plain function — no useCallback needed for a derived computation
+  
   const isActive = (href: string) => {
     if (href === ROUTES.HOME) return location.pathname === ROUTES.HOME;
     return location.pathname.startsWith(href);
@@ -44,7 +44,7 @@ function Navbar() {
     }
   }, [logout, navigate]);
 
-  // FIX #4: Scroll effect now actually changes padding
+  
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
@@ -60,12 +60,10 @@ function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close mobile menu on route change
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  // Close mobile menu on outside click or Escape
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -75,7 +73,7 @@ function Navbar() {
         mobileMenuButtonRef.current &&
         !mobileMenuButtonRef.current.contains(e.target as Node)
       ) {
-        setMobileOpen(false);
+        setMobileOpen(false)
       }
     };
     const handleEscape = (e: KeyboardEvent) => {
@@ -94,12 +92,11 @@ function Navbar() {
       role="banner"
       className={cn(
         "sticky top-0 z-50 w-full",
-        // FIX #5: use font-body (DM Sans / Jost) not legacy font-arima
+
         "font-body",
         "bg-background/80 backdrop-blur-md border-b border-border/50",
-        // FIX #10: correct Tailwind supports-[] syntax
         "supports-backdrop-filter:bg-background/60",
-        // FIX #4: scroll state now actually does something
+
         scrolled ? "py-1 lg:py-2" : "py-2 lg:py-4",
         "transition-[padding] duration-200",
       )}
@@ -115,12 +112,7 @@ function Navbar() {
             aria-label="Nova Properties Home"
             data-testid="navbar-logo"
           >
-            {/*
-              FIX #1: SVG attributes converted to valid JSX camelCase.
-              FIX #2: Text fills use CSS variables so they respond to dark mode.
-              The building icon keeps its literal fills (they look good on any bg).
-              Only the text labels (NOVA, PROPERTIES) use theme-aware fills.
-            */}
+            
             <svg
               width="320"
               height="56"
@@ -136,7 +128,7 @@ function Navbar() {
                 </linearGradient>
               </defs>
 
-              {/* Building mark — literal fills intentional, looks fine on any bg */}
+              
               <g transform="translate(4,2) scale(0.36)">
                 <polygon points="60,0 120,28 0,28"          fill="url(#archH)" />
                 <polygon
@@ -153,10 +145,7 @@ function Navbar() {
               {/* Divider line */}
               <line x1="58" y1="8" x2="58" y2="48" stroke="var(--border)" strokeWidth="0.6" />
 
-              {/*
-                FIX #2: Text uses currentColor so it inherits text-foreground
-                from the parent <Link>, which correctly flips in dark mode.
-              */}
+              
               <text
                 x="68" y="26"
                 fontFamily="Cinzel, serif"
@@ -186,7 +175,7 @@ function Navbar() {
             className="hidden lg:flex items-center gap-1 xl:gap-2"
           >
             {navItems.map((item) => (
-              // FIX #6: added `relative` so the absolute underline indicator positions correctly
+              
               <div key={item.name} className="relative">
                 <Button
                   asChild
@@ -209,7 +198,7 @@ function Navbar() {
                   </RefForwardedLink>
                 </Button>
 
-                {/* Active indicator — outside Button so `absolute` is relative to the wrapper div */}
+               
                 {isActive(item.href) && (
                   <motion.div
                     className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
@@ -227,7 +216,7 @@ function Navbar() {
               <div className="rounded-lg hidden md:flex items-center bg-primary text-primary-foreground">
                 <Link
                   to={ROUTES.SIGNIN}
-                  className="flex items-center gap-2 px-2 py-1.5 font-display font-semibold text-[16px] lg:text-base rounded-md transition-all duration-200 hover:scale-[1.02] hover:opacity-90 focus:outline-none "
+                  className="flex items-center gap-2 px-2 py-1.5 font-display font-semibold lg:text-base rounded-md transition-all duration-200 hover:scale-[1.02] hover:opacity-90 focus:outline-none text-sm "
                   data-testid="signin-button"
                   aria-label="Sign in"
                 >
@@ -289,7 +278,7 @@ function Navbar() {
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeInOut" }}
-              // FIX #12: removed overflow-hidden so box-shadows on children aren't clipped
+              
               className="lg:hidden"
               aria-label="Mobile navigation"
               data-testid="mobile-menu"
@@ -336,7 +325,7 @@ function Navbar() {
                     <Link
                       to={ROUTES.SIGNIN}
                       onClick={() => setMobileOpen(false)}
-                      // FIX #9: text-primary-foreground instead of text-sidebar
+                     
                       className="md:hidden flex items-center justify-center bg-primary text-primary-foreground gap-2 px-4 py-2 w-full rounded-md transition-all duration-200 hover:opacity-90 text-base sm:text-lg"
                       data-testid="mobile-signin-button"
                       aria-label="Sign in"
@@ -348,7 +337,7 @@ function Navbar() {
                     <Button
                       onClick={handleLogout}
                       variant="ghost"
-                      // FIX #8: text-foreground, not text-sidebar
+         
                       className="md:hidden flex items-center justify-center text-foreground gap-2 px-4 py-2 w-full rounded-md transition-all duration-200 hover:bg-accent text-base sm:text-lg"
                       data-testid="mobile-logout-button"
                       aria-label="Log out"
