@@ -29,7 +29,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           react: ["react", "react-dom"],
-          ui: ["framer-motion"],
+          ui: ["framer-motion", "@headlessui/react"],
           vendor: ["axios", "react-router-dom"],
         },
       },
