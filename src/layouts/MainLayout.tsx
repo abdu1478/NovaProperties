@@ -1,7 +1,8 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { type ReactNode } from "react";
 
-import DocumentHead from "@/components/DocumentHead";
+import DocumentHead from "@/components/Shared/DocumentHead";
+import { SeoHead } from "@/components/Shared/SeoHead";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Toaster } from "sonner";
@@ -19,6 +20,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   return (
     <>
       <DocumentHead />
+      <SeoHead />
       {!hideLayout && <Navbar />}
 
       <main

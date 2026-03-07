@@ -5,7 +5,7 @@ import type {
   TestimonialHandler,
 } from "Handlers";
 
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/Services/supabase";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -82,17 +82,22 @@ export const fetchAgentById = async (id: string): Promise<AgentHandler> => {
   return response.data;
 };
 
-export const fetchFavouriteProperties = async (): Promise<PropertyHandler[]> => {
-  const { data: session } = await supabase.auth.getSession();
+export const fetchFavouriteProperties = async (): Promise<
+  PropertyHandler[]
+> => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  const response = await axios.get(
-    `${API_BASE_URL}/users/favourites`,
-    {
-      headers: {
-        Authorization: `Bearer ${session?.session?.access_token}`,
-      },
-    }
-  );
+  if (!session?.access_token) {
+    throw new Error("Not authenticated");
+  }
+
+  const response = await axios.get(`${API_BASE_URL}/users/favourites`, {
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+    },
+  });
 
   return response.data;
 };
@@ -101,29 +106,37 @@ export const setFavouriteProperty = async (
   userId: string,
   propertyId: string,
 ) => {
-  try {
-    const response = await axios.post(
-      `${API_BASE_URL}/users/${userId}/favourites`,
-      { propertyId },
-      { withCredentials: true },
-    );
-    return response.data;
-  } catch (error: any) {
-    const errorMessage =
-      error.response?.data?.message || "Failed to set favourite property";
-    throw new Error(errorMessage);
-  }
+    const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session?.access_token) throw new Error("Not authenticated");
+
+  const response = await axios.post(`${API_BASE_URL}/users/favourites`, 
+    { propertyId },
+    {
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    }
+  );
+
+  return response.data;
 };
 
 export const deleteFavouriteProperty = async (
   userId: string,
   propertyId: string,
 ) => {
-  const response = await axios.delete(
-    `${API_BASE_URL}/users/${userId}/favourites/${propertyId}`,
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session?.access_token) throw new Error("Not authenticated");
+
+
+  const response = await axios.delete(`${API_BASE_URL}/users/favourites/${propertyId}`,
     {
-      withCredentials: true,
-    },
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    }
   );
   return response.data;
 };

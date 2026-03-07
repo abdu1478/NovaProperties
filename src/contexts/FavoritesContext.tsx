@@ -10,12 +10,12 @@ import {
   fetchFavouriteProperties,
   setFavouriteProperty,
   deleteFavouriteProperty,
-  type Property,
 } from "@/utils/api";
+import type { PropertyHandler } from "Handlers";
 import { toast } from "sonner";
 
 interface FavoritesContextType {
-  favorites: Property[];
+  favorites: PropertyHandler[];
   loading: boolean;
   error: string | null;
   isFavorite: (propertyId: string) => boolean;
@@ -31,7 +31,7 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(
 export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [favorites, setFavorites] = useState<Property[]>([]);
+  const [favorites, setFavorites] = useState<PropertyHandler[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [mutatingIds, setMutatingIds] = useState<string[]>([]);
@@ -40,17 +40,28 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
   const fetchFavorites = useCallback(async () => {
     if (!user) return;
 
+    const controller = new AbortController();
+
     try {
       setLoading(true);
-      const data = await fetchFavouriteProperties(user?.id);
-      setFavorites(data);
-      setError(null);
+      const data = await fetchFavouriteProperties();
+
+      if (!controller.signal.aborted) {
+        setFavorites(data);
+        setError(null);
+      }
     } catch (err) {
-      setError("Failed to load favorites");
-      console.error(err);
+      if (!controller.signal.aborted) {
+        setError("Failed to load favorites");
+        console.error(err);
+      }
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
     }
+
+    return () => controller.abort();
   }, [user]);
 
   useEffect(() => {
@@ -99,7 +110,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
               onClick: () => {
                 setFavorites((prev) => [
                   ...prev,
-                  { _id: propertyId } as Property,
+                  { _id: propertyId } as PropertyHandler,
                 ]);
                 toast.success("Added back to favorites", {
                   closeButton: true,
@@ -110,7 +121,10 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
         } else {
           if (!favorites.some((p) => p._id === propertyId)) {
             await setFavouriteProperty(user.id, propertyId);
-            setFavorites((prev) => [...prev, { _id: propertyId } as Property]);
+            setFavorites((prev) => [
+              ...prev,
+              { _id: propertyId } as PropertyHandler,
+            ]);
             toast.success("Added to favorites", {
               closeButton: true,
             });
@@ -149,7 +163,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
             onClick: () => {
               setFavorites((prev) => [
                 ...prev,
-                { _id: propertyId } as Property,
+                { _id: propertyId } as PropertyHandler,
               ]);
               toast.success("Added back to favorites");
             },

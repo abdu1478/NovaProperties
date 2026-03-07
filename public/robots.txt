@@ -1,8 +1,12 @@
 User-agent: *
-Disallow: /signin
-Disallow: /signup
-Disallow: /favorite
-Disallow: /agents
 Allow: /
 
-Sitemap: https://www.novaproperties.com/sitemap.xml
+# Auth and personal pages — no indexing
+Disallow: /auth/
+Disallow: /auth/callback
+Disallow: /sign-in
+Disallow: /signin
+Disallow: /signup
+Disallow: /favorites
+
+Sitemap: https://nova-properties-rho.vercel.app/sitemap.xml

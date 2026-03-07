@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast, Toaster } from "sonner";
 import { withoutAuth } from "@/hooks/withOutAuth";
 import { motion } from "framer-motion";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/Services/supabase";
 
 const GENERIC_AUTH_ERROR = "Invalid email or password. Please try again.";
 

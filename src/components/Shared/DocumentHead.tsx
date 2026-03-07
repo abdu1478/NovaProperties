@@ -1,4 +1,4 @@
-import { useLocation, useMatches } from "react-router-dom";
+import { useMatches } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import type { RouteHandle } from "react-router-dom";
 

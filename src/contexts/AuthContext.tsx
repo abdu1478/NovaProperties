@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/Services/supabase";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface User {

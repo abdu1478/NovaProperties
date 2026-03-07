@@ -1,7 +1,8 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Home } from "lucide-react";
+import { RefreshCw, Home, ArrowLeft, AlertTriangle, ServerCrash } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
 
 interface ErrorFallbackProps {
@@ -13,205 +14,425 @@ interface ErrorFallbackProps {
   type?: "component" | "route" | "500";
 }
 
+
+
+const Particle: React.FC<{ delay: number; x: number; size: number; opacity: number }> = ({
+  delay,
+  x,
+  size,
+  opacity,
+}) => (
+  <motion.span
+    aria-hidden="true"
+    style={{
+      position: "absolute",
+      left: `${x}%`,
+      bottom: "-10px",
+      width: size,
+      height: size,
+      borderRadius: "50%",
+      background: "oklch(55% 0.12 220 / 0.25)",
+      pointerEvents: "none",
+    }}
+    animate={{
+      y: [0, -420],
+      opacity: [0, opacity, 0],
+      scale: [0.6, 1.1, 0.4],
+    }}
+    transition={{
+      duration: 7 + delay * 1.4,
+      repeat: Infinity,
+      delay,
+      ease: "easeInOut",
+    }}
+  />
+);
+
+
+
+const Ring: React.FC<{ size: number; delay: number; className?: string }> = ({
+  size,
+  delay,
+  className = "",
+}) => (
+  <motion.div
+    aria-hidden="true"
+    className={className}
+    style={{
+      width: size,
+      height: size,
+      borderRadius: "50%",
+      border: "1px solid oklch(55% 0.12 220 / 0.18)",
+    }}
+    animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.15, 0.6] }}
+    transition={{ duration: 4, repeat: Infinity, delay, ease: "easeInOut" }}
+  />
+);
+
+
+
+const errorMeta = {
+  component: { code: "ERR", color: "oklch(55% 0.18 30)", label: "Component Error" },
+  route: { code: "404", color: "oklch(55% 0.14 260)", label: "Page Not Found" },
+  "500": { code: "500", color: "oklch(50% 0.20 15)", label: "Server Error" },
+} as const;
+
 export const ErrorFallback: React.FC<ErrorFallbackProps> = ({
   error,
   onRetry,
-  message = "Oops! Something went wrong.",
+  message,
   compact = false,
   className = "",
   type = "component",
 }) => {
-  const [isPerformingAction, setIsPerformingAction] = React.useState(false);
-  const [imageError, setImageError] = React.useState(false);
+  const navigate = useNavigate();
+  const [isActing, setIsActing] = React.useState(false);
+  const [showDetails, setShowDetails] = React.useState(false);
 
-  let errorMessage = message;
-  let actionLabel = "Try Again";
-  let performingActionLabel = "Fixing things...";
-  let actionIcon = <RefreshCw size={compact ? 14 : 16} />;
+  const meta = errorMeta[type];
 
-  if (type === "route") {
-    errorMessage = "Page not found";
-    actionLabel = "Go Home";
-    performingActionLabel = "Redirecting...";
-    actionIcon = <Home size={compact ? 14 : 16} />;
-  } else if (type === "500") {
-    errorMessage = "Server error";
-    actionLabel = "Retry";
-    performingActionLabel = "Reconnecting...";
-  }
+  const defaultMessages: Record<typeof type, string> = {
+    component: "Something went wrong",
+    route: "Page not found",
+    "500": "Server unavailable",
+  };
+  const displayMessage = message ?? defaultMessages[type];
+
+  const subtitles: Record<typeof type, string> = {
+    component:
+      "An unexpected error interrupted this view. Try refreshing or returning home.",
+    route:
+      "The property you're looking for may have been moved, sold, or the URL is incorrect.",
+    "500":
+      "Our servers are momentarily unavailable. Our team has been alerted and is working on it.",
+  };
+
+  const actionLabel =
+    type === "route" ? "Return Home" : type === "500" ? "Retry" : "Try Again";
+  const actingLabel =
+    type === "route" ? "Redirecting…" : type === "500" ? "Reconnecting…" : "Refreshing…";
+  const ActionIcon = type === "route" ? Home : RefreshCw;
 
   const handleAction = async () => {
-    setIsPerformingAction(true);
-
+    setIsActing(true);
+    await new Promise((r) => setTimeout(r, 500));
     if (type === "route") {
-      setTimeout(() => {
-        navigate(ROUTES.HOME);
-        setIsPerformingAction(false);
-      }, 500);
+      navigate(ROUTES.HOME);
+      setIsActing(false);
     } else if (onRetry) {
-      setTimeout(async () => {
-        try {
-          await onRetry();
-        } catch (error) {
-          console.error("Action failed:", error);
-        } finally {
-          setIsPerformingAction(false);
-        }
-      }, 500);
+      try { await onRetry(); } catch (e) { console.error(e); } finally { setIsActing(false); }
     } else {
-      setTimeout(() => {
-        window.location.reload();
-        setIsPerformingAction(false);
-      }, 500);
+      window.location.reload();
     }
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
+  const handleBack = () => navigate(-1);
+
+  
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+    },
+  };
+  const item = {
+    hidden: { opacity: 0, y: 18, filter: "blur(4px)" },
+    show: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: 0.6,
-        ease: [0.4, 0, 0.2, 1] as const,
-        staggerChildren: 0.1,
-      },
+      filter: "blur(0px)",
+      transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
     },
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] as const },
-    },
-  };
-
-  const yetiVariants = {
-    idle: {
-      y: [0, -8, 0],
-      rotate: [0, 2, -2, 0],
-      transition: {
-        duration: 3,
-        repeat: Infinity,
-        ease: [0.4, 0, 0.6, 1] as const,
-      },
-    },
-    working: {
-      rotate: [0, -5, 5, -5, 5, 0],
-      scale: [1, 1.05, 1],
-      transition: {
-        duration: 0.8,
-        repeat: Infinity,
-        ease: [0.4, 0, 0.6, 1] as const,
-      },
-    },
-  };
+  const particles = React.useMemo(
+    () =>
+      Array.from({ length: compact ? 5 : 9 }, (_, i) => ({
+        delay: i * 0.9,
+        x: 8 + i * 10,
+        size: 4 + (i % 3) * 3,
+        opacity: 0.25 + (i % 4) * 0.1,
+      })),
+    [compact]
+  );
 
   return (
     <motion.section
-      className={`flex flex-col items-center justify-center p-6 text-center space-y-6 ${
-        compact ? "min-h-[300px]" : "min-h-[400px]"
-      } ${className}`}
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
       role="alert"
       aria-live="polite"
-      aria-labelledby="error-title"
-      aria-describedby="error-description"
+      aria-labelledby="err-title"
+      aria-describedby="err-desc"
+      className={`relative flex flex-col items-center justify-center overflow-hidden text-center
+        ${compact ? "min-h-[320px] p-6" : "min-h-[520px] p-10"}
+        ${className}`}
+      style={{
+        background:
+          "radial-gradient(ellipse 80% 60% at 50% 0%, oklch(22% 0.04 220 / 0.6), transparent 70%), oklch(10% 0.015 220)",
+        fontFamily: "'Cormorant Garamond', 'Palatino Linotype', Georgia, serif",
+      }}
+      variants={container}
+      initial="hidden"
+      animate="show"
     >
+      
+      
+
+      <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
+        {particles.map((p, i) => (
+          <Particle key={i} {...p} />
+        ))}
+      </div>
+
+
+      {!compact && (
+        <div
+          aria-hidden="true"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+        >
+          <Ring size={320} delay={0} />
+          <Ring size={220} delay={1.2} className="absolute top-[50px] left-[50px]" />
+          <Ring size={120} delay={2.4} className="absolute top-[100px] left-[100px]" />
+        </div>
+      )}
+
+
       <motion.div
-        className="relative"
-        variants={yetiVariants}
-        animate={isPerformingAction ? "working" : "idle"}
+        aria-hidden="true"
+        variants={item}
+        style={{ width: compact ? 40 : 56, height: 1, background: "oklch(55% 0.12 220 / 0.5)" }}
+        className="mb-6"
+      />
+
+
+      <motion.div variants={item} className="relative mb-4 select-none" aria-hidden="true">
+        <span
+          style={{
+            fontSize: compact ? "5rem" : "8rem",
+            fontWeight: 300,
+            letterSpacing: "-0.04em",
+            lineHeight: 1,
+            color: "transparent",
+            WebkitTextStroke: `1px ${meta.color}`,
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            opacity: 0.9,
+          }}
+        >
+          {meta.code}
+        </span>
+        
+        <span
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            fontSize: compact ? "5rem" : "8rem",
+            fontWeight: 300,
+            letterSpacing: "-0.04em",
+            lineHeight: 1,
+            color: meta.color,
+            opacity: 0.08,
+            filter: "blur(18px)",
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            pointerEvents: "none",
+          }}
+        >
+          {meta.code}
+        </span>
+      </motion.div>
+
+
+      <motion.div variants={item} className="mb-5">
+        <span
+          style={{
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: "0.6rem",
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+            color: meta.color,
+            padding: "4px 14px",
+            border: `1px solid ${meta.color}55`,
+            borderRadius: "2px",
+          }}
+        >
+          {meta.label}
+        </span>
+      </motion.div>
+
+
+      <motion.h1
+        id="err-title"
+        variants={item}
+        style={{
+          fontFamily: "'Cormorant Garamond', Georgia, serif",
+          fontWeight: 300,
+          fontSize: compact ? "1.4rem" : "2rem",
+          letterSpacing: "-0.01em",
+          lineHeight: 1.25,
+          color: "oklch(95% 0.01 220)",
+          maxWidth: "28ch",
+          margin: "0 auto 0.75rem",
+        }}
       >
-        {!imageError ? (
-          <img
-            src={"logo.webp"}
-            alt="Friendly yeti helper character"
-            className={`${
-              compact ? "w-20 h-20" : "w-24 h-24"
-            } object-contain drop-shadow-lg`}
-            onError={() => setImageError(true)}
-            loading="lazy"
-            decoding="async"
-          />
-        ) : (
-          <div
-            className={`${
-              compact ? "text-4xl" : "text-5xl"
-            } animate-bounce-gentle`}
-            role="img"
-            aria-label="Friendly helper"
-          >
-            🧊
-          </div>
-        )}
-      </motion.div>
+        {displayMessage}
+      </motion.h1>
 
-      <motion.div className="space-y-2" variants={itemVariants}>
-        <h2
-          id="error-title"
-          className={`font-semibold text-foreground ${
-            compact ? "text-lg" : "text-xl"
-          }`}
-        >
-          {errorMessage}
-        </h2>
-        <p
-          id="error-description"
-          className={`text-muted-foreground ${
-            compact ? "text-sm" : "text-base"
-          } max-w-md mx-auto leading-relaxed`}
-        >
-          {type === "500"
-            ? "Our servers are having trouble. Our yeti team is working to resolve this."
-            : "Don't worry! Our yeti friend is here to help get things back on track."}
-        </p>
 
-        {process.env.NODE_ENV === "development" && error && (
-          <details className="mt-4 text-left text-sm text-muted-foreground">
-            <summary>Error details</summary>
-            <pre className="mt-2 p-2 bg-muted/50 rounded overflow-auto max-h-40">
-              {error.toString()}
-            </pre>
-          </details>
-        )}
-      </motion.div>
+      <motion.p
+        id="err-desc"
+        variants={item}
+        style={{
+          fontFamily: "'DM Sans', sans-serif",
+          fontWeight: 300,
+          fontSize: compact ? "0.78rem" : "0.875rem",
+          lineHeight: 1.7,
+          color: "oklch(70% 0.03 220)",
+          maxWidth: "40ch",
+          margin: "0 auto 2.5rem",
+        }}
+      >
+        {subtitles[type]}
+      </motion.p>
 
-      <motion.div variants={itemVariants}>
-        <Button
+      {/* ── CTA cluster ── */}
+      <motion.div variants={item} className="flex items-center gap-3 flex-wrap justify-center">
+        {/* Primary action */}
+        <motion.button
           onClick={handleAction}
-          disabled={isPerformingAction}
-          variant="default"
-          size={compact ? "sm" : "default"}
-          className="relative overflow-hidden group bg-gradient-to-r from-primary to-secondary hover:shadow-lg transition-all duration-300 text-white"
+          disabled={isActing}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          aria-label={isActing ? actingLabel : actionLabel}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: compact ? "8px 20px" : "11px 28px",
+            fontSize: compact ? "0.75rem" : "0.8rem",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            fontFamily: "'DM Sans', sans-serif",
+            fontWeight: 500,
+            color: "oklch(10% 0.015 220)",
+            background: isActing
+              ? "oklch(72% 0.10 220)"
+              : "oklch(80% 0.12 220)",
+            border: "none",
+            borderRadius: "2px",
+            cursor: isActing ? "not-allowed" : "pointer",
+            transition: "background 0.2s",
+            boxShadow: "0 4px 24px oklch(55% 0.14 220 / 0.3)",
+          }}
         >
-          <motion.div
-            className="flex items-center gap-2"
-            animate={isPerformingAction ? { x: [0, -2, 2, 0] } : {}}
-            transition={{
-              duration: 0.3,
-              repeat: isPerformingAction ? Infinity : 0,
+          <motion.span
+            animate={isActing ? { rotate: 360 } : { rotate: 0 }}
+            transition={{ duration: 1, repeat: isActing ? Infinity : 0, ease: "linear" }}
+            style={{ display: "inline-flex" }}
+          >
+            <ActionIcon size={compact ? 13 : 15} strokeWidth={2} />
+          </motion.span>
+          {isActing ? actingLabel : actionLabel}
+        </motion.button>
+
+        {/* Secondary: go back */}
+        {type !== "route" && (
+          <motion.button
+            onClick={handleBack}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            aria-label="Go back to the previous page"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: compact ? "8px 18px" : "11px 24px",
+              fontSize: compact ? "0.75rem" : "0.8rem",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              fontFamily: "'DM Sans', sans-serif",
+              fontWeight: 400,
+              color: "oklch(70% 0.05 220)",
+              background: "transparent",
+              border: "1px solid oklch(55% 0.05 220 / 0.4)",
+              borderRadius: "2px",
+              cursor: "pointer",
+              transition: "border-color 0.2s, color 0.2s",
             }}
           >
-            {actionIcon}
-            {isPerformingAction ? performingActionLabel : actionLabel}
-          </motion.div>
-
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"
-            initial={false}
-          />
-        </Button>
+            <ArrowLeft size={compact ? 13 : 15} strokeWidth={1.5} />
+            Go Back
+          </motion.button>
+        )}
       </motion.div>
 
-      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-gradient-to-r from-secondary/5 to-primary/5 rounded-full blur-3xl" />
-      </div>
+
+      <AnimatePresence>
+        {process.env.NODE_ENV === "development" && error && (
+          <motion.div
+            variants={item}
+            initial="hidden"
+            animate="show"
+            className="mt-6 w-full max-w-lg text-left"
+          >
+            <button
+              onClick={() => setShowDetails((v) => !v)}
+              style={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: "0.7rem",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "oklch(55% 0.08 220)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+              aria-expanded={showDetails}
+              aria-controls="err-details"
+            >
+              <AlertTriangle size={11} />
+              {showDetails ? "Hide" : "Show"} error details
+            </button>
+            <AnimatePresence>
+              {showDetails && (
+                <motion.pre
+                  id="err-details"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  style={{
+                    overflow: "auto",
+                    maxHeight: 160,
+                    marginTop: 8,
+                    padding: "12px 14px",
+                    background: "oklch(14% 0.02 220)",
+                    border: "1px solid oklch(30% 0.04 220)",
+                    borderRadius: 4,
+                    fontSize: "0.7rem",
+                    color: "oklch(65% 0.08 30)",
+                    fontFamily: "monospace",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-all",
+                  }}
+                >
+                  {error?.stack ?? error?.toString() ?? "Unknown error"}
+                </motion.pre>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+
+      <motion.div
+        aria-hidden="true"
+        variants={item}
+        style={{ width: compact ? 40 : 56, height: 1, background: "oklch(55% 0.12 220 / 0.5)" }}
+        className="mt-8"
+      />
     </motion.section>
   );
 };
