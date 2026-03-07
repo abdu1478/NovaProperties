@@ -20,10 +20,7 @@ const socialLinks = [
 
 const Footer = () => {
   return (
-    <footer
-      role="contentinfo"
-      className="bg-primary text-primary-foreground py-5"
-    >
+    <footer role="contentinfo" className="bg-primary text-background py-5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 font-arima">
           <div>
@@ -38,10 +35,10 @@ const Footer = () => {
               </div>
               <span className="text-xl font-bold ml-3">
                 Nova{" "}
-                <span className="text-accent-foreground/90">Properties</span>
+                <span className="text-accent-background/90">Properties</span>
               </span>
             </div>
-            <p className="text-foreground font-semibold mb-6 text-sm text-wrap">
+            <p className="text-background/90 font-semibold mb-6 text-sm text-wrap">
               Helping you find your dream home since 1999. Trusted by thousands
               of families across the country.
             </p>
@@ -72,19 +69,19 @@ const Footer = () => {
                         item === "Home"
                           ? "/"
                           : item === "About Us"
-                          ? "/about-us"
-                          : item === "Properties"
-                          ? "/properties/listings"
-                          : item === "Agents"
-                          ? "/agents"
-                          : "/contact"
+                            ? "/about-us"
+                            : item === "Properties"
+                              ? "/properties/listings"
+                              : item === "Agents"
+                                ? "/agents"
+                                : "/contact"
                       }`}
-                      className="text-foreground/95 hover:text-primary-foreground transition-colors"
+                      className="text-background/95 hover:text-primary-foreground transition-colors"
                     >
                       {item}
                     </Link>
                   </li>
-                )
+                ),
               )}
             </ul>
           </nav>
@@ -100,15 +97,15 @@ const Footer = () => {
                         item === "Buying"
                           ? "buy"
                           : item === "Renting"
-                          ? "rent"
-                          : item.toLowerCase()
+                            ? "rent"
+                            : item.toLowerCase()
                       }`}
-                      className="text-foreground hover:text-primary-foreground transition-colors"
+                      className="text-background hover:text-primary-foreground transition-colors"
                     >
                       {item}
                     </Link>
                   </li>
-                )
+                ),
               )}
             </ul>
           </nav>
